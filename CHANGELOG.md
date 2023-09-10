@@ -1,3 +1,7 @@
+4.0.0 (unreleased)
+------------------
+- BREAK: Repackage to com.bendb.thrifty
+
 3.1.0 (released 13 December 2022)
 ------------------
 - Add: Support default field values in struct-typed constants (#507)
