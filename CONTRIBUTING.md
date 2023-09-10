@@ -22,10 +22,8 @@ DOs and DON'Ts
 Coding Style
 ------------
 
-The coding style employed here is fairly conventional Java - indentations are four spaces, class
-names are PascalCased, identifiers and methods are camelCased.  Code style is checked automatically
-with checkstyle - nonconforming code will fail during CI builds.  Anything not covered by checkstyle
-is left to your discretion, but please try to favor matching the style of existing code.
+The coding style employed here is fairly conventional Kotlin.  Please use the standard Kotlin code style.  Anything not covered by CI
+checks is left to your discretion, but please try to favor matching the style of existing code.
 
 Workflow
 --------
@@ -36,15 +34,3 @@ direction, and hopefully avoid investing a lot of time on a feature that might n
 Small pull requests for things like typos, bugfixes, etc are always welcome.
 
 Please note that we will not accept pull requests for style changes.
-
-
-Contributor License Agreement (CLA)
------------------------------------
-
-Before we can accept your code, you must sign an individual Contributor License Agreement.  When you
-open a new pull request, our CLA robot will guide you through the process.
-
-Code of Conduct
----------------
-
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
