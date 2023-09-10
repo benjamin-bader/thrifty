@@ -57,5 +57,5 @@ jobs:
         run: ./gradlew check codeCoverageReport --parallel --no-daemon
 
       - name: Upload coverage stats
-        if: success() && matrix.os == 'ubuntu-latest' && matrix.jvm-version == '8'
+        if: success() && matrix.os == 'ubuntu-latest' && matrix.jvm-version == '17'
         uses: codecov/codecov-action@v3
