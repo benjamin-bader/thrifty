@@ -43,17 +43,24 @@ dependencies {
     testImplementation libs.bundles.testing
 }
 
-// For some reason, Kotlin compilation is being run prior to antlr by default.
-tasks.named('compileKotlin').configure {
+// Antlr doesn't interact nicely with tasks from Kotlin or Dokka (or non-java tasks in general),
+// so we need to manually specify the dependency between the two antlr tasks and anything that
+// might consume their output.
+def mainTaskNames = [
+        'compileKotlin',
+        'javaSourcesJar',
+        'kotlinSourcesJar',
+        'dokkaHtml',
+].toSet()
+
+def testTaskNames = [
+        'compileTestKotlin'
+].toSet()
+
+tasks.matching { mainTaskNames.contains(it.name) }.configureEach {
     dependsOn 'generateGrammarSource'
 }
 
-tasks.named('compileTestKotlin').configure {
+tasks.matching { testTaskNames.contains(it.name) }.configureEach {
     dependsOn 'generateTestGrammarSource'
-}
-
-// antlr doesn't hook up nicely with javaSourcesJar, so Gradle complains about
-// it unless we manually specify the dependency between the two
-tasks.matching { it.name == 'javaSourcesJar' || it.name == 'kotlinSourcesJar' }.configureEach {
-    dependsOn 'generateGrammarSource'
 }
