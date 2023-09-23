@@ -34,6 +34,7 @@ jobs:
           path: |
             ~/.gradle/caches/
             ~/.gradle/wrapper/
+            ~/.konan/
             .build-cache/
           key: cache-gradle-${{ matrix.os }}-${{ matrix.jvm-version }}-${{ hashFiles('settings.gradle') }}-${{ hashFiles('**/build.gradle') }}
           restore-keys: |
