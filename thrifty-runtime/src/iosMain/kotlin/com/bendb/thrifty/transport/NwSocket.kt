@@ -20,10 +20,11 @@
  */
 package com.bendb.thrifty.transport
 
-import KT62102Workaround.dispatch_data_default_destructor
+import KT62102Workaround.dispatch_get_target_default_queue
 import KT62102Workaround.nw_connection_send_with_default_context
 import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.Pinned
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.usePinned
@@ -98,45 +99,48 @@ class NwSocket(
         buffer.usePinned { pinned ->
             var totalRead = 0
             while (totalRead < count) {
-                val sem = dispatch_semaphore_create(0)
-                var eof = false
-                var networkError: nw_error_t = null
-                var numRead = 0
+                val numRead = readOneChunk(pinned, offset + totalRead, count - totalRead)
 
-                nw_connection_receive(
-                    connection = conn,
-                    minimum_incomplete_length = 0.convert(),
-                    maximum_length = (count - totalRead).convert()
-                ) { contents, _, complete, error ->
-                    if (error == null) {
-                        dispatch_data_apply(contents) { _, _, dataPtr, size ->
-                            memcpy(pinned.addressOf(offset + totalRead + numRead), dataPtr, size)
-                            numRead += size.toInt()
-                            true
-                        }
-                    }
-
-                    networkError = error
-                    eof = complete
-
-                    dispatch_semaphore_signal(sem)
-                }
-
-                if (!sem.waitWithTimeout(readWriteTimeoutMillis)) {
-                    throw IOException("Timed out waiting for read")
+                if (numRead == 0) {
+                    break
                 }
 
                 totalRead += numRead
-
-                networkError?.throwError()
-
-                if (eof || numRead == 0) {
-                    break
-                }
             }
 
             return totalRead
         }
+    }
+
+    @Throws(IOException::class)
+    private fun readOneChunk(pinned: Pinned<ByteArray>, offset: Int, count: Int): Int {
+        val sem = dispatch_semaphore_create(0)
+        var networkError: nw_error_t = null
+        var numRead = 0
+
+        nw_connection_receive(
+            connection = conn,
+            minimum_incomplete_length = 0.convert(),
+            maximum_length = count.convert()
+        ) { contents, _, _, error ->
+            dispatch_data_apply(contents) { _, _, dataPtr, size ->
+                memcpy(pinned.addressOf(offset + numRead), dataPtr, size)
+                numRead += size.toInt()
+                true // keep going
+            }
+
+            networkError = error
+
+            dispatch_semaphore_signal(sem)
+        }
+
+        if (!sem.waitWithTimeout(readWriteTimeoutMillis)) {
+            throw IOException("Timed out waiting for read")
+        }
+
+        networkError?.throwError()
+
+        return numRead
     }
 
     fun write(buffer: ByteArray, offset: Int = 0, count: Int = buffer.size) {
@@ -151,8 +155,8 @@ class NwSocket(
             val toWrite = dispatch_data_create(
                 buffer = pinned.addressOf(offset),
                 size = count.convert(),
-                queue = null,
-                destructor = dispatch_data_default_destructor(),
+                queue = dispatch_get_target_default_queue(), // Our own method, see KT62102Workaround
+                destructor = ::noopDispatchBlock
             )
 
             var err: nw_error_t = null
@@ -221,22 +225,31 @@ class NwSocket(
             host: String,
             port: Int,
             enableTls: Boolean,
-            sendTimeout: Long = 0,
-            connectTimeout: Long = 0,
+            sendTimeoutMillis: Long = 0,
+            connectTimeoutMillis: Long = 0,
         ): NwSocket {
-            val endpoint = nw_endpoint_create_host(host, "$port") ?: error("Invalid host/port: $host:$port")
+            // Network.framework, at the C level, is a little tedious to use.
+            // Rather than a sockaddr_t and a socket descriptor, there are relatively
+            // more "things".  We've got to set up an endpoint, then connection parameters,
+            // then TCP options, then TLS options, and finally a connection.
+            // The remainder of the weirdness is ours, since we're using semaphores
+            // to make this asynchronous API into a synchronous one.
+            require(connectTimeoutMillis >= 0L) { "negative connect timeouts are not supported" }
+            require(sendTimeoutMillis >= 0L) { "negative send timeouts are not supported" }
 
-            val tcpOptions = nw_tcp_create_options()
-            if (connectTimeout != 0L) {
-                nw_tcp_options_set_connection_timeout(
-                    tcpOptions,
-                    maxOf(1, connectTimeout / 1000).convert()
-                )
-            }
-            nw_tcp_options_set_no_delay(tcpOptions, true)
+            val endpoint = nw_endpoint_create_host(host, "$port") ?: error("Invalid host/port: $host:$port")
 
             val parameters = nw_parameters_create()
             val stack = nw_parameters_copy_default_protocol_stack(parameters)
+
+            val tcpOptions = nw_tcp_create_options()
+            if (connectTimeoutMillis != 0L) {
+                nw_tcp_options_set_connection_timeout(
+                    tcpOptions,
+                    maxOf(1, connectTimeoutMillis / 1000).convert()
+                )
+            }
+            nw_tcp_options_set_no_delay(tcpOptions, true)
             nw_protocol_stack_set_transport_protocol(stack, tcpOptions)
 
             if (enableTls) {
@@ -267,7 +280,7 @@ class NwSocket(
             }
 
             nw_connection_start(connection)
-            val finishedInTime = sem.waitWithTimeout(connectTimeout)
+            val finishedInTime = sem.waitWithTimeout(connectTimeoutMillis)
 
             if (connectionError.value != null) {
                 nw_connection_cancel(connection)
@@ -280,11 +293,21 @@ class NwSocket(
             }
 
             if (didConnect.value) {
-                return NwSocket(connection, sendTimeout)
+                return NwSocket(connection, sendTimeoutMillis)
             }
 
             throw IOException("Failed to connect, but got no error")
         }
+
+        /**
+         * A function, usable as a [platform.darwin.dispatch_block_t], that does nothing.
+         *
+         * When used with [dispatch_data_create], this block causes the data
+         * *not* to be copied.  This is what we want, since we're using semaphores
+         * to wait for write completion, and we can guarantee that our memory
+         * outlives the dispatch_data_t that wraps it.
+         */
+        private fun noopDispatchBlock() {}
 
         /**
          * Returns true if the semaphore was signaled, false if it timed out.

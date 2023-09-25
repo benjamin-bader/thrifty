@@ -20,3 +20,7 @@ void nw_connection_send_with_default_context(
 dispatch_block_t dispatch_data_default_destructor() {
   return DISPATCH_DATA_DESTRUCTOR_DEFAULT;
 }
+
+dispatch_queue_t dispatch_get_target_default_queue() {
+  return DISPATCH_TARGET_QUEUE_DEFAULT;
+}

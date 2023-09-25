@@ -62,7 +62,7 @@ import kotlin.test.Test
 @OptIn(ExperimentalForeignApi::class)
 class SocketTest {
     @Test
-    fun foo() {
+    fun canRoundTripStructs() {
         val xtruct = Xtruct.Builder()
             .bool_thing(true)
             .byte_thing(1)
@@ -91,7 +91,6 @@ class SocketTest {
         nw_listener_set_queue(serverListener, globalQueue)
         nw_listener_set_new_connection_handler(serverListener) { connection ->
             nw_connection_set_state_changed_handler(connection) { state, err ->
-                println("server: state changed: $state $err")
                 if (state == nw_connection_state_ready) {
                     val transport = SocketTransport(connection)
                     val protocol = BinaryProtocol(transport)

@@ -24,7 +24,7 @@ import okio.IOException
 import platform.Network.nw_connection_t
 
 actual class SocketTransport actual constructor(
-    builder: Builder
+    builder: Builder,
 ) : Transport {
     private val host = builder.host
     private val port = builder.port
@@ -95,6 +95,12 @@ actual class SocketTransport actual constructor(
 
     @Throws(IOException::class)
     actual fun connect() {
-        socket = NwSocket.connect(host, port, tls, sendTimeout = readTimeout, connectTimeout = connectTimeout)
+        socket = NwSocket.connect(
+            host = host,
+            port = port,
+            enableTls = tls,
+            sendTimeoutMillis = readTimeout,
+            connectTimeoutMillis = connectTimeout
+        )
     }
 }
