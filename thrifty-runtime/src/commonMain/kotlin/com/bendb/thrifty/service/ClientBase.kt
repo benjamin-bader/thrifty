@@ -24,9 +24,8 @@ package com.bendb.thrifty.service
 import com.bendb.thrifty.Struct
 import com.bendb.thrifty.ThriftException
 import com.bendb.thrifty.ThriftException.Companion.read
-import com.bendb.thrifty.internal.AtomicBoolean
-import com.bendb.thrifty.internal.AtomicInteger
 import com.bendb.thrifty.protocol.Protocol
+import kotlinx.atomicfu.atomic
 import okio.Closeable
 import okio.IOException
 
@@ -43,12 +42,12 @@ open class ClientBase protected constructor(private val protocol: Protocol) : Cl
      * A sequence ID generator; contains the most-recently-used
      * sequence ID (or zero, if no calls have been made).
      */
-    private val seqId = AtomicInteger(0)
+    private val seqId = atomic(0)
 
     /**
      * A flag indicating whether the client is active and connected.
      */
-    protected val running = AtomicBoolean(true)
+    protected val running = atomic(true)
 
     /**
      * When invoked by a derived instance, sends the given call to the server.
@@ -57,7 +56,7 @@ open class ClientBase protected constructor(private val protocol: Protocol) : Cl
      * @return the result of the method call
      */
     protected suspend fun <T> execute(methodCall: MethodCall<T>): T? {
-        check(running.get()) { "Cannot write to a closed service client" }
+        check(running.value) { "Cannot write to a closed service client" }
         return try {
             invokeRequest(methodCall)
         } catch (e: ServerException) {
@@ -123,7 +122,7 @@ open class ClientBase protected constructor(private val protocol: Protocol) : Cl
                     ThriftException.Kind.INVALID_MESSAGE_TYPE,
                     "Invalid message type: " + metadata.type)
         }
-        if (metadata.seqId != seqId.get()) {
+        if (metadata.seqId != seqId.value) {
             throw ThriftException(
                     ThriftException.Kind.BAD_SEQUENCE_ID,
                     "Out-of-order response")

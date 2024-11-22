@@ -29,12 +29,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.newSingleThreadContext
-import kotlinx.coroutines.supervisorScope
 import okio.Closeable
-import kotlin.coroutines.CoroutineContext
-import kotlin.reflect.typeOf
 
 /**
  * Implements a basic service client that executes methods asynchronously.
@@ -88,7 +83,7 @@ abstract class AsyncClientBase protected constructor(
     }
 
     protected suspend fun <T> executeMethodCall(methodCall: MethodCall<T>): T {
-        check(running.get()) { "Cannot write to a closed service client" }
+        check(running.value) { "Cannot write to a closed service client" }
 
         return try {
             scope.async { invokeRequest(methodCall) }.await()

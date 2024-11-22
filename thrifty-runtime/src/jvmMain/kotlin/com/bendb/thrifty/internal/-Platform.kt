@@ -26,4 +26,3 @@ import kotlinx.coroutines.Dispatchers
 
 actual typealias ProtocolException = java.net.ProtocolException
 
-actual val DefaultDispatcher: CoroutineDispatcher = Dispatchers.IO
