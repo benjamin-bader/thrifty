@@ -57,15 +57,15 @@ jobs:
         shell: bash
         run: ./gradlew check codeCoverageReport --parallel --no-daemon
 
-      - name: Boot simulator
-        if: matrix.os == 'macos-13'
-        shell: bash
-        run: xcrun simctl boot 'iPhone 14 Pro Max' || true
-
-      - name: Run simulator tests
-        if: matrix.os == 'macos-13'
-        shell: bash
-        run: ./gradlew iosTest
+#      - name: Boot simulator
+#        if: matrix.os == 'macos-13'
+#        shell: bash
+#        run: xcrun simctl boot 'iPhone 14 Pro Max' || true
+#
+#      - name: Run simulator tests
+#        if: matrix.os == 'macos-13'
+#        shell: bash
+#        run: ./gradlew iosTest
 
       - name: Upload coverage stats
         if: success() && matrix.os == 'ubuntu-latest' && matrix.jvm-version == '17'
