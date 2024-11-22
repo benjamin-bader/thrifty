@@ -84,7 +84,7 @@ class ThriftException(
         }
     }
 
-    override fun write(protocol: Protocol) {
+    override suspend fun write(protocol: Protocol) {
         protocol.writeStructBegin("TApplicationException")
         message?.let { message ->
             protocol.writeFieldBegin("message", 1, TType.STRING)
@@ -100,7 +100,7 @@ class ThriftException(
 
     companion object {
         @JvmStatic
-        fun read(protocol: Protocol): ThriftException {
+        suspend fun read(protocol: Protocol): ThriftException {
             var message: String? = null
             var kind = Kind.UNKNOWN
             protocol.readStructBegin()

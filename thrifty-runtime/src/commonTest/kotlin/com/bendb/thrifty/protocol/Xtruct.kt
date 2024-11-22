@@ -82,8 +82,7 @@ class Xtruct private constructor(builder: Builder) : Struct {
         return "Xtruct{string_thing=" + string_thing + ", byte_thing=" + byte_thing + ", i32_thing=" + i32_thing + ", i64_thing=" + i64_thing + ", double_thing=" + double_thing + ", bool_thing=" + bool_thing + "}"
     }
 
-    @Throws(IOException::class)
-    override fun write(protocol: Protocol) {
+    override suspend fun write(protocol: Protocol) {
         ADAPTER.write(protocol, this)
     }
 
@@ -149,9 +148,8 @@ class Xtruct private constructor(builder: Builder) : Struct {
         }
     }
 
-    private class XtructAdapter : Adapter<Xtruct, Builder> {
-        @Throws(IOException::class)
-        override fun write(protocol: Protocol, struct: Xtruct) {
+    private class XtructAdapter : Adapter<Xtruct> {
+        override suspend fun write(protocol: Protocol, struct: Xtruct) {
             protocol.writeStructBegin("Xtruct")
             if (struct.string_thing != null) {
                 protocol.writeFieldBegin("string_thing", 1, TType.STRING)
@@ -187,8 +185,7 @@ class Xtruct private constructor(builder: Builder) : Struct {
             protocol.writeStructEnd()
         }
 
-        @Throws(IOException::class)
-        override fun read(protocol: Protocol, builder: Builder): Xtruct {
+        private suspend fun read(protocol: Protocol, builder: Builder): Xtruct {
             protocol.readStructBegin()
             while (true) {
                 val field = protocol.readFieldBegin()
@@ -254,15 +251,14 @@ class Xtruct private constructor(builder: Builder) : Struct {
             return builder.build()
         }
 
-        @Throws(IOException::class)
-        override fun read(protocol: Protocol): Xtruct {
+        override suspend fun read(protocol: Protocol): Xtruct {
             return read(protocol, Builder())
         }
     }
 
     companion object {
         @JvmField
-        val ADAPTER: Adapter<Xtruct, Builder> = XtructAdapter()
+        val ADAPTER: Adapter<Xtruct> = XtructAdapter()
     }
 
     init {

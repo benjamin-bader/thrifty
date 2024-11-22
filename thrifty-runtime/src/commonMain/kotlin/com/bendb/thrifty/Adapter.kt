@@ -22,15 +22,15 @@
 package com.bendb.thrifty
 
 import com.bendb.thrifty.protocol.Protocol
+import kotlinx.coroutines.runBlocking
 import okio.IOException
 
 /**
  * An object that can read and write a Thrift struct of type [T] from and
  * to a [Protocol] object.
  * @param T the type of struct that can be written and read
- * @param B a [StructBuilder] for [T].
  */
-interface Adapter<T, B : StructBuilder<T>> {
+interface Adapter<T> {
     /**
      * Reads a new instance of [T] from the given `protocol`.
      *
@@ -38,20 +38,7 @@ interface Adapter<T, B : StructBuilder<T>> {
      * @return an instance of [T] populated with the data just read.
      * @throws IOException if reading fails, or if the struct is malformed.
      */
-    @Throws(IOException::class)
-    fun read(protocol: Protocol): T
-
-    /**
-     * Reads a new instane of [T] from the given `protocol`, using
-     * the pre-allocated `builder`.
-     *
-     * @param protocol the protocol from which to read
-     * @param builder a builder for [T]
-     * @return an instance of [T] populated with the data just read.
-     * @throws IOException if reading fails, or if the struct is malformed.
-     */
-    @Throws(IOException::class)
-    fun read(protocol: Protocol, builder: B): T
+    suspend fun read(protocol: Protocol): T
 
     /**
      * Writes the given `struct` to the given `protocol`.
@@ -60,6 +47,14 @@ interface Adapter<T, B : StructBuilder<T>> {
      * @param struct the struct to be written
      * @throws IOException if writing fails
      */
-    @Throws(IOException::class)
-    fun write(protocol: Protocol, struct: T)
+    suspend fun write(protocol: Protocol, struct: T)
+}
+
+/**
+ * An adapter that can read and write a Thrift struct of type [T] from and
+ * to a [Protocol] object, using blocking I/O.
+ */
+class BlockingAdapter<T>(private val adapter: Adapter<T>) {
+    fun read(protocol: Protocol): T = runBlocking { adapter.read(protocol) }
+    fun write(protocol: Protocol, struct: T) = runBlocking { adapter.write(protocol, struct) }
 }

@@ -29,7 +29,7 @@ interface ServerCall<TArgs, THandler> {
     val oneWay: Boolean
 
     object Empty : Struct {
-        override fun write(protocol: Protocol) {
+        override suspend fun write(protocol: Protocol) {
             protocol.writeStructBegin("void")
             protocol.writeFieldStop()
             protocol.writeStructEnd()

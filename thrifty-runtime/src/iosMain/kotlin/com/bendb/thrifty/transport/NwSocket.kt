@@ -28,6 +28,7 @@ import kotlinx.cinterop.Pinned
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.usePinned
+import kotlinx.coroutines.suspendCancellableCoroutine
 import okio.Closeable
 import okio.IOException
 import platform.Network.nw_connection_cancel
@@ -75,6 +76,8 @@ import platform.darwin.dispatch_time_t
 import platform.posix.QOS_CLASS_DEFAULT
 import platform.posix.intptr_t
 import platform.posix.memcpy
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalForeignApi::class)
@@ -221,7 +224,7 @@ class NwSocket(
     companion object {
         private val INTPTR_ZERO = 0.convert<intptr_t>()
 
-        fun connect(
+        suspend fun connect(
             host: String,
             port: Int,
             enableTls: Boolean,
@@ -279,24 +282,27 @@ class NwSocket(
                 }
             }
 
-            nw_connection_start(connection)
-            val finishedInTime = sem.waitWithTimeout(connectTimeoutMillis)
+            return suspendCancellableCoroutine<NwSocket> { continuation ->
+                nw_connection_start(connection)
+                val finishedInTime = sem.waitWithTimeout(connectTimeoutMillis)
 
-            if (connectionError.value != null) {
-                nw_connection_cancel(connection)
-                connectionError.value.throwError("Error connecting to $host:$port")
+                if (connectionError.value != null) {
+                    nw_connection_cancel(connection)
+                    connectionError.value.throwError("Error connecting to $host:$port")
+                }
+
+                if (!finishedInTime) {
+                    nw_connection_cancel(connection)
+                    throw IOException("Timed out connecting to $host:$port")
+                }
+
+                if (didConnect.value) {
+                    continuation.resume(NwSocket(connection, sendTimeoutMillis))
+                } else {
+                    val e = IOException("Failed to connect, but got no error")
+                    continuation.resumeWithException(e)
+                }
             }
-
-            if (!finishedInTime) {
-                nw_connection_cancel(connection)
-                throw IOException("Timed out connecting to $host:$port")
-            }
-
-            if (didConnect.value) {
-                return NwSocket(connection, sendTimeoutMillis)
-            }
-
-            throw IOException("Failed to connect, but got no error")
         }
 
         /**

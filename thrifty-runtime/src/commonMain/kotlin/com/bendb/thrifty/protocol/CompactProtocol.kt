@@ -50,7 +50,6 @@ import com.bendb.thrifty.transport.Transport
 import okio.ByteString
 import okio.ByteString.Companion.toByteString
 import okio.EOFException
-import okio.IOException
 
 /**
  * An implementation of the Thrift compact binary protocol.
@@ -77,32 +76,27 @@ class CompactProtocol(transport: Transport) : BaseProtocol(transport) {
     private val readingFields = ShortStack()
     private var lastReadingField: Short = 0
 
-    @Throws(IOException::class)
-    override fun writeMessageBegin(name: String, typeId: Byte, seqId: Int) {
+    override suspend fun writeMessageBegin(name: String, typeId: Byte, seqId: Int) {
         writeByte(PROTOCOL_ID)
         writeByte(((VERSION.toInt() and VERSION_MASK.toInt()) or ((typeId.toInt() shl TYPE_SHIFT_AMOUNT) and TYPE_MASK.toInt())).toByte())
         writeVarint32(seqId)
         writeString(name)
     }
 
-    @Throws(IOException::class)
-    override fun writeMessageEnd() {
+    override suspend fun writeMessageEnd() {
         // no wire representation
     }
 
-    @Throws(IOException::class)
-    override fun writeStructBegin(structName: String) {
+    override suspend fun writeStructBegin(structName: String) {
         writingFields.push(lastWritingField)
         lastWritingField = 0
     }
 
-    @Throws(IOException::class)
-    override fun writeStructEnd() {
+    override suspend fun writeStructEnd() {
         lastWritingField = writingFields.pop()
     }
 
-    @Throws(IOException::class)
-    override fun writeFieldBegin(fieldName: String, fieldId: Int, typeId: Byte) {
+    override suspend fun writeFieldBegin(fieldName: String, fieldId: Int, typeId: Byte) {
         if (typeId == TType.BOOL) {
             if (booleanFieldId != -1) {
                 throw ProtocolException("Nested invocation of writeFieldBegin")
@@ -113,8 +107,7 @@ class CompactProtocol(transport: Transport) : BaseProtocol(transport) {
         }
     }
 
-    @Throws(IOException::class)
-    private fun writeFieldBegin(fieldId: Int, compactTypeId: Byte) {
+    private suspend fun writeFieldBegin(fieldId: Int, compactTypeId: Byte) {
         // Can we delta-encode the field ID?
         if (fieldId > lastWritingField && fieldId - lastWritingField <= 15) {
             writeByte((fieldId - lastWritingField shl 4 or compactTypeId.toInt()).toByte())
@@ -125,18 +118,15 @@ class CompactProtocol(transport: Transport) : BaseProtocol(transport) {
         lastWritingField = fieldId.toShort()
     }
 
-    @Throws(IOException::class)
-    override fun writeFieldEnd() {
+    override suspend fun writeFieldEnd() {
         // no wire representation
     }
 
-    @Throws(IOException::class)
-    override fun writeFieldStop() {
+    override suspend fun writeFieldStop() {
         writeByte(TType.STOP)
     }
 
-    @Throws(IOException::class)
-    override fun writeMapBegin(keyTypeId: Byte, valueTypeId: Byte, mapSize: Int) {
+    override suspend fun writeMapBegin(keyTypeId: Byte, valueTypeId: Byte, mapSize: Int) {
         if (mapSize == 0) {
             writeByte(0.toByte())
         } else {
@@ -147,33 +137,27 @@ class CompactProtocol(transport: Transport) : BaseProtocol(transport) {
         }
     }
 
-    @Throws(IOException::class)
-    override fun writeMapEnd() {
+    override suspend fun writeMapEnd() {
         // no wire representation
     }
 
-    @Throws(IOException::class)
-    override fun writeListBegin(elementTypeId: Byte, listSize: Int) {
+    override suspend fun writeListBegin(elementTypeId: Byte, listSize: Int) {
         writeVectorBegin(elementTypeId, listSize)
     }
 
-    @Throws(IOException::class)
-    override fun writeListEnd() {
+    override suspend fun writeListEnd() {
         // no wire representation
     }
 
-    @Throws(IOException::class)
-    override fun writeSetBegin(elementTypeId: Byte, setSize: Int) {
+    override suspend fun writeSetBegin(elementTypeId: Byte, setSize: Int) {
         writeVectorBegin(elementTypeId, setSize)
     }
 
-    @Throws(IOException::class)
-    override fun writeSetEnd() {
+    override suspend fun writeSetEnd() {
         // no wire representation
     }
 
-    @Throws(IOException::class)
-    override fun writeBool(b: Boolean) {
+    override suspend fun writeBool(b: Boolean) {
         val compactValue = if (b) CompactTypes.BOOLEAN_TRUE else CompactTypes.BOOLEAN_FALSE
         if (booleanFieldId != -1) {
             // We are writing a boolean field, and need to write the
@@ -187,29 +171,24 @@ class CompactProtocol(transport: Transport) : BaseProtocol(transport) {
         }
     }
 
-    @Throws(IOException::class)
-    override fun writeByte(b: Byte) {
+    override suspend fun writeByte(b: Byte) {
         buffer[0] = b
         transport.write(buffer, 0, 1)
     }
 
-    @Throws(IOException::class)
-    override fun writeI16(i16: Short) {
+    override suspend fun writeI16(i16: Short) {
         writeVarint32(intToZigZag(i16.toInt()))
     }
 
-    @Throws(IOException::class)
-    override fun writeI32(i32: Int) {
+    override suspend fun writeI32(i32: Int) {
         writeVarint32(intToZigZag(i32))
     }
 
-    @Throws(IOException::class)
-    override fun writeI64(i64: Long) {
+    override suspend fun writeI64(i64: Long) {
         writeVarint64(longToZigZag(i64))
     }
 
-    @Throws(IOException::class)
-    override fun writeDouble(dub: Double) {
+    override suspend fun writeDouble(dub: Double) {
         val bits = dub.toRawBits()
 
         // Doubles get written out in little-endian order
@@ -224,21 +203,18 @@ class CompactProtocol(transport: Transport) : BaseProtocol(transport) {
         transport.write(buffer, 0, 8)
     }
 
-    @Throws(IOException::class)
-    override fun writeString(str: String) {
+    override suspend fun writeString(str: String) {
         val bytes = str.encodeToByteArray()
         writeVarint32(bytes.size)
         transport.write(bytes)
     }
 
-    @Throws(IOException::class)
-    override fun writeBinary(buf: ByteString) {
+    override suspend fun writeBinary(buf: ByteString) {
         writeVarint32(buf.size)
         transport.write(buf.toByteArray())
     }
 
-    @Throws(IOException::class)
-    private fun writeVectorBegin(typeId: Byte, size: Int) {
+    private suspend fun writeVectorBegin(typeId: Byte, size: Int) {
         val compactId = CompactTypes.ttypeToCompact(typeId)
         if (size <= 14) {
             writeByte(((size shl 4) or compactId.toInt()).toByte())
@@ -248,8 +224,7 @@ class CompactProtocol(transport: Transport) : BaseProtocol(transport) {
         }
     }
 
-    @Throws(IOException::class)
-    private fun writeVarint32(num: Int) {
+    private suspend fun writeVarint32(num: Int) {
         var n = num
         for (i in buffer.indices) {
             if (n and 0x7F.inv() == 0x00) {
@@ -264,8 +239,7 @@ class CompactProtocol(transport: Transport) : BaseProtocol(transport) {
         throw IllegalArgumentException("Cannot represent $n as a varint in 16 bytes or less")
     }
 
-    @Throws(IOException::class)
-    private fun writeVarint64(num: Long) {
+    private suspend fun writeVarint64(num: Long) {
         var n = num
         for (i in buffer.indices) {
             if (n and 0x7FL.inv() == 0x00L) {
@@ -280,8 +254,7 @@ class CompactProtocol(transport: Transport) : BaseProtocol(transport) {
         throw IllegalArgumentException("Cannot represent $n as a varint in 16 bytes or less")
     }
 
-    @Throws(IOException::class)
-    override fun readMessageBegin(): MessageMetadata {
+    override suspend fun readMessageBegin(): MessageMetadata {
         val protocolId = readByte()
         if (protocolId != PROTOCOL_ID) {
             throw ProtocolException(
@@ -301,24 +274,20 @@ class CompactProtocol(transport: Transport) : BaseProtocol(transport) {
         return MessageMetadata(name, typeId, seqId)
     }
 
-    @Throws(IOException::class)
-    override fun readMessageEnd() {
+    override suspend fun readMessageEnd() {
     }
 
-    @Throws(IOException::class)
-    override fun readStructBegin(): StructMetadata {
+    override suspend fun readStructBegin(): StructMetadata {
         readingFields.push(lastReadingField)
         lastReadingField = 0
         return NO_STRUCT
     }
 
-    @Throws(IOException::class)
-    override fun readStructEnd() {
+    override suspend fun readStructEnd() {
         lastReadingField = readingFields.pop()
     }
 
-    @Throws(IOException::class)
-    override fun readFieldBegin(): FieldMetadata {
+    override suspend fun readFieldBegin(): FieldMetadata {
         val compactId = readByte()
         val typeId = CompactTypes.compactToTtype((compactId.toInt() and 0x0F).toByte())
         if (compactId == TType.STOP) {
@@ -340,12 +309,10 @@ class CompactProtocol(transport: Transport) : BaseProtocol(transport) {
         return FieldMetadata("", typeId, fieldId)
     }
 
-    @Throws(IOException::class)
-    override fun readFieldEnd() {
+    override suspend fun readFieldEnd() {
     }
 
-    @Throws(IOException::class)
-    override fun readMapBegin(): MapMetadata {
+    override suspend fun readMapBegin(): MapMetadata {
         val size = readVarint32()
         val keyAndValueTypes = if (size == 0) 0 else readByte()
         val keyType = CompactTypes.compactToTtype(((keyAndValueTypes.toInt() shr 4) and 0x0F).toByte())
@@ -353,27 +320,23 @@ class CompactProtocol(transport: Transport) : BaseProtocol(transport) {
         return MapMetadata(keyType, valueType, size)
     }
 
-    @Throws(IOException::class)
-    override fun readMapEnd() {
+    override suspend fun readMapEnd() {
         // Nothing on the wire
     }
 
-    @Throws(IOException::class)
-    override fun readListBegin(): ListMetadata {
+    override suspend fun readListBegin(): ListMetadata {
         return readCollectionBegin(::ListMetadata)
     }
 
-    @Throws(IOException::class)
-    override fun readListEnd() {
+    override suspend fun readListEnd() {
         // Nothing on the wire
     }
 
-    @Throws(IOException::class)
-    override fun readSetBegin(): SetMetadata {
+    override suspend fun readSetBegin(): SetMetadata {
         return readCollectionBegin(::SetMetadata)
     }
 
-    private inline fun <T> readCollectionBegin(buildMetadata: (Byte, Int) -> T): T {
+    private suspend inline fun <T> readCollectionBegin(buildMetadata: (Byte, Int) -> T): T {
         val sizeAndType = readByte()
         var size: Int = (sizeAndType.toInt() shr 4) and 0x0F
         if (size == 0x0F) {
@@ -384,13 +347,11 @@ class CompactProtocol(transport: Transport) : BaseProtocol(transport) {
         return buildMetadata(ttype, size)
     }
 
-    @Throws(IOException::class)
-    override fun readSetEnd() {
+    override suspend fun readSetEnd() {
         // Nothing on the wire
     }
 
-    @Throws(IOException::class)
-    override fun readBool(): Boolean {
+    override suspend fun readBool(): Boolean {
         val compactId: Byte
         if (booleanFieldType.toInt() != -1) {
             compactId = booleanFieldType
@@ -401,29 +362,24 @@ class CompactProtocol(transport: Transport) : BaseProtocol(transport) {
         return compactId == CompactTypes.BOOLEAN_TRUE
     }
 
-    @Throws(IOException::class)
-    override fun readByte(): Byte {
+    override suspend fun readByte(): Byte {
         readFully(buffer, 1)
         return buffer[0]
     }
 
-    @Throws(IOException::class)
-    override fun readI16(): Short {
+    override suspend fun readI16(): Short {
         return zigZagToInt(readVarint32()).toShort()
     }
 
-    @Throws(IOException::class)
-    override fun readI32(): Int {
+    override suspend fun readI32(): Int {
         return zigZagToInt(readVarint32())
     }
 
-    @Throws(IOException::class)
-    override fun readI64(): Long {
+    override suspend fun readI64(): Long {
         return zigZagToLong(readVarint64())
     }
 
-    @Throws(IOException::class)
-    override fun readDouble(): Double {
+    override suspend fun readDouble(): Double {
         readFully(buffer, 8)
         val bits: Long = ((buffer[0].toLong() and 0xFFL)
                 or ((buffer[1].toLong() and 0xFFL) shl 8)
@@ -436,8 +392,7 @@ class CompactProtocol(transport: Transport) : BaseProtocol(transport) {
         return Double.fromBits(bits)
     }
 
-    @Throws(IOException::class)
-    override fun readString(): String {
+    override suspend fun readString(): String {
         val length = readVarint32()
         if (length == 0) {
             return ""
@@ -447,8 +402,7 @@ class CompactProtocol(transport: Transport) : BaseProtocol(transport) {
         return bytes.decodeToString()
     }
 
-    @Throws(IOException::class)
-    override fun readBinary(): ByteString {
+    override suspend fun readBinary(): ByteString {
         val length = readVarint32()
         if (length == 0) {
             return ByteString.EMPTY
@@ -458,8 +412,7 @@ class CompactProtocol(transport: Transport) : BaseProtocol(transport) {
         return bytes.toByteString()
     }
 
-    @Throws(IOException::class)
-    private fun readVarint32(): Int {
+    private suspend fun readVarint32(): Int {
         var result = 0
         var shift = 0
         while (true) {
@@ -472,8 +425,7 @@ class CompactProtocol(transport: Transport) : BaseProtocol(transport) {
         }
     }
 
-    @Throws(IOException::class)
-    private fun readVarint64(): Long {
+    private suspend fun readVarint64(): Long {
         var result: Long = 0
         var shift = 0
         while (true) {
@@ -486,8 +438,7 @@ class CompactProtocol(transport: Transport) : BaseProtocol(transport) {
         }
     }
 
-    @Throws(IOException::class)
-    private fun readFully(buffer: ByteArray, count: Int) {
+    private suspend fun readFully(buffer: ByteArray, count: Int) {
         var toRead = count
         var offset = 0
         while (toRead > 0) {

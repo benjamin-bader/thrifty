@@ -48,7 +48,7 @@ open class ClientBase protected constructor(private val protocol: Protocol) : Cl
     /**
      * A flag indicating whether the client is active and connected.
      */
-    val running = AtomicBoolean(true)
+    protected val running = AtomicBoolean(true)
 
     /**
      * When invoked by a derived instance, sends the given call to the server.
@@ -56,8 +56,7 @@ open class ClientBase protected constructor(private val protocol: Protocol) : Cl
      * @param methodCall the remote method call to be invoked
      * @return the result of the method call
      */
-    @Throws(Exception::class)
-    protected fun execute(methodCall: MethodCall<*>): Any? {
+    protected suspend fun <T> execute(methodCall: MethodCall<T>): T? {
         check(running.get()) { "Cannot write to a closed service client" }
         return try {
             invokeRequest(methodCall)
@@ -97,7 +96,7 @@ open class ClientBase protected constructor(private val protocol: Protocol) : Cl
      * @throws Exception exception received from server implements [com.bendb.thrifty.Struct]
      */
     @Throws(Exception::class)
-    fun invokeRequest(call: MethodCall<*>): Any? {
+    suspend fun <T> invokeRequest(call: MethodCall<T>): T {
         val isOneWay = call.callTypeId == TMessageType.ONEWAY
         val sid = seqId.incrementAndGet()
         protocol.writeMessageBegin(call.name, call.callTypeId, sid)
@@ -106,7 +105,8 @@ open class ClientBase protected constructor(private val protocol: Protocol) : Cl
         protocol.flush()
         if (isOneWay) {
             // No response will be received
-            return Unit
+            @Suppress("UNCHECKED_CAST")
+            return Unit as T
         }
         val metadata = protocol.readMessageBegin()
         if (metadata.seqId != sid) {

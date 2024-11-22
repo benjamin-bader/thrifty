@@ -33,8 +33,7 @@ abstract class BaseProtocol(
         transport.close()
     }
 
-    @Throws(IOException::class)
-    override fun flush() {
+    override suspend fun flush() {
         transport.flush()
     }
 }

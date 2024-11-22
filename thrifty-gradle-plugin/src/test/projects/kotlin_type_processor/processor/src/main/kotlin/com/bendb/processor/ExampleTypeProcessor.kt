@@ -21,17 +21,17 @@
  */
 package com.bendb.example.processor
 
-import com.bendb.thrifty.compiler.spi.KotlinTypeProcessor
+import com.bendb.thrifty.compiler.spi.TypeProcessor
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import java.io.Serializable
 
 /**
- * An example [KotlinTypeProcessor] that implements [Serializable]
+ * An example [TypeProcessor] that implements [Serializable]
  * for all generated types.
  */
-class ExampleTypeProcessor : KotlinTypeProcessor {
+class ExampleTypeProcessor : TypeProcessor {
     private var firstRun = true
 
     override fun process(spec: TypeSpec): TypeSpec? {

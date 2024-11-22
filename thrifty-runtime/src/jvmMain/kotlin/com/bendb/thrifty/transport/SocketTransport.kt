@@ -29,7 +29,7 @@ import java.net.Socket
 import javax.net.SocketFactory
 import javax.net.ssl.SSLSocketFactory
 
-actual class SocketTransport actual constructor(
+class SocketTransport constructor(
         builder: Builder
 ) : Transport {
     private val host = builder.host
@@ -42,7 +42,7 @@ actual class SocketTransport actual constructor(
     private var inputStream: InputStream? = null
     private var outputStream: OutputStream? = null
 
-    actual class Builder actual constructor(host: String, port: Int) {
+    class Builder constructor(host: String, port: Int) {
         internal val host: String
         internal val port: Int
         internal var readTimeout = 0
@@ -50,19 +50,19 @@ actual class SocketTransport actual constructor(
         internal var socketFactory: SocketFactory? = null
         internal var enableTls: Boolean = false
 
-        actual fun readTimeout(readTimeout: Int): Builder {
+        fun readTimeout(readTimeout: Int): Builder {
             require(readTimeout >= 0) { "readTimeout cannot be negative" }
             this.readTimeout = readTimeout
             return this
         }
 
-        actual fun connectTimeout(connectTimeout: Int): Builder {
+        fun connectTimeout(connectTimeout: Int): Builder {
             require(connectTimeout >= 0) { "connectTimeout cannot be negative" }
             this.connectTimeout = connectTimeout
             return this
         }
 
-        actual fun enableTls(enableTls: Boolean): Builder {
+        fun enableTls(enableTls: Boolean): Builder {
             if (socketFactory == null) {
                 socketFactory = SSLSocketFactory.getDefault()
             }
@@ -74,7 +74,7 @@ actual class SocketTransport actual constructor(
             return this
         }
 
-        actual fun build(): SocketTransport {
+        fun build(): SocketTransport {
             return SocketTransport(this)
         }
 
@@ -100,23 +100,19 @@ actual class SocketTransport actual constructor(
             return s != null && s.isConnected && !s.isClosed
         }
 
-    @Throws(IOException::class)
-    override fun read(buffer: ByteArray, offset: Int, count: Int): Int {
+    override suspend fun read(buffer: ByteArray, offset: Int, count: Int): Int {
         return inputStream!!.read(buffer, offset, count)
     }
 
-    @Throws(IOException::class)
-    override fun write(buffer: ByteArray, offset: Int, count: Int) {
+    override suspend fun write(buffer: ByteArray, offset: Int, count: Int) {
         outputStream!!.write(buffer, offset, count)
     }
 
-    @Throws(IOException::class)
-    override fun flush() {
+    override suspend fun flush() {
         outputStream!!.flush()
     }
 
-    @Throws(IOException::class)
-    actual fun connect() {
+    suspend fun connect() {
         if (socket == null) {
             socket = socketFactory.createSocket()
         }

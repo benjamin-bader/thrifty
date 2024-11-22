@@ -75,7 +75,6 @@ sourceSets {
 dependencies {
     compileOnly gradleApi()
 
-    compileOnly project(':thrifty-java-codegen')
     compileOnly project(':thrifty-kotlin-codegen')
     compileOnly project(':thrifty-schema')
 

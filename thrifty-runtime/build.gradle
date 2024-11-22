@@ -87,6 +87,7 @@ kotlin {
                 implementation libs.kotlin.test.annotations.common
                 implementation libs.kotest.assertions.common
                 implementation libs.kotest.assertions.core
+                implementation libs.kotlinx.coroutinesTest
             }
         }
 

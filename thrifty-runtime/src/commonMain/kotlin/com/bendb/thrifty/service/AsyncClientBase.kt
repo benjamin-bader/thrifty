@@ -21,8 +21,20 @@
  */
 package com.bendb.thrifty.service
 
+import com.bendb.thrifty.Struct
 import com.bendb.thrifty.protocol.Protocol
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.newSingleThreadContext
+import kotlinx.coroutines.supervisorScope
 import okio.Closeable
+import kotlin.coroutines.CoroutineContext
+import kotlin.reflect.typeOf
 
 /**
  * Implements a basic service client that executes methods asynchronously.
@@ -37,10 +49,16 @@ import okio.Closeable
  * @param protocol the [Protocol] used to encode/decode requests and responses.
  * @param listener a callback object to receive client-level events.
  */
-expect open class AsyncClientBase protected constructor(
+@OptIn(ExperimentalCoroutinesApi::class)
+abstract class AsyncClientBase protected constructor(
+    // todo: name of the service
     protocol: Protocol,
     listener: Listener
-) : ClientBase, Closeable {
+) : ClientBase(protocol), Closeable {
+    private val dispatcher = Dispatchers.Default.limitedParallelism(parallelism = 1)
+    private val job = SupervisorJob()
+    private val scope = CoroutineScope(dispatcher + job)
+
     /**
      * Exposes important events in the client's lifecycle.
      */
@@ -69,13 +87,36 @@ expect open class AsyncClientBase protected constructor(
         fun onError(error: Throwable)
     }
 
-    /**
-     * Enqueues a method call for asynchronous execution.
-     *
-     * WARNING:
-     * This method is *NOT* part of the public API.  It is an implementation
-     * detail, for use by generated code only.  As multi-platform code evolves,
-     * expect this to change and/or be removed entirely!
-     */
-    protected fun enqueue(methodCall: MethodCall<*>)
+    protected suspend fun <T> executeMethodCall(methodCall: MethodCall<T>): T {
+        check(running.get()) { "Cannot write to a closed service client" }
+
+        return try {
+            scope.async { invokeRequest(methodCall) }.await()
+        } catch (e: ServerException) {
+            throw e.thriftException
+        } catch (e: Throwable) {
+            if (e is Struct) {
+                // In this case, the server has returned an exception that is a Thrift struct
+                // and which therefore is part of the service-method contract.
+                throw e
+            }
+
+            // Any other error results in the client being closed
+            closeWithException(e)
+            throw e
+        }
+    }
+
+    override fun close() {
+        closeWithException(null)
+    }
+
+    private fun closeWithException(cause: Throwable?) {
+        if (!running.compareAndSet(true, false)) {
+            return
+        }
+
+        scope.cancel()
+        closeProtocol()
+    }
 }

@@ -27,7 +27,6 @@ import com.bendb.thrifty.transport.Transport
 import okio.ByteString
 import okio.ByteString.Companion.toByteString
 import okio.EOFException
-import okio.IOException
 import kotlin.jvm.JvmOverloads
 
 /**
@@ -55,8 +54,7 @@ class BinaryProtocol @JvmOverloads constructor(
     private val strictRead = false
     private val strictWrite = false
 
-    @Throws(IOException::class)
-    override fun writeMessageBegin(name: String, typeId: Byte, seqId: Int) {
+    override suspend fun writeMessageBegin(name: String, typeId: Byte, seqId: Int) {
         if (strictWrite) {
             val version = VERSION_1 or (typeId.toInt() and 0xFF)
             writeI32(version)
@@ -69,84 +67,68 @@ class BinaryProtocol @JvmOverloads constructor(
         }
     }
 
-    @Throws(IOException::class)
-    override fun writeMessageEnd() {
+    override suspend fun writeMessageEnd() {
     }
 
-    @Throws(IOException::class)
-    override fun writeStructBegin(structName: String) {
+    override suspend fun writeStructBegin(structName: String) {
     }
 
-    @Throws(IOException::class)
-    override fun writeStructEnd() {
+    override suspend fun writeStructEnd() {
     }
 
-    @Throws(IOException::class)
-    override fun writeFieldBegin(fieldName: String, fieldId: Int, typeId: Byte) {
+    override suspend fun writeFieldBegin(fieldName: String, fieldId: Int, typeId: Byte) {
         writeByte(typeId)
         writeI16(fieldId.toShort())
     }
 
-    @Throws(IOException::class)
-    override fun writeFieldEnd() {
+    override suspend fun writeFieldEnd() {
     }
 
-    @Throws(IOException::class)
-    override fun writeFieldStop() {
+    override suspend fun writeFieldStop() {
         writeByte(TType.STOP)
     }
 
-    @Throws(IOException::class)
-    override fun writeMapBegin(keyTypeId: Byte, valueTypeId: Byte, mapSize: Int) {
+    override suspend fun writeMapBegin(keyTypeId: Byte, valueTypeId: Byte, mapSize: Int) {
         writeByte(keyTypeId)
         writeByte(valueTypeId)
         writeI32(mapSize)
     }
 
-    @Throws(IOException::class)
-    override fun writeMapEnd() {
+    override suspend fun writeMapEnd() {
     }
 
-    @Throws(IOException::class)
-    override fun writeListBegin(elementTypeId: Byte, listSize: Int) {
+    override suspend fun writeListBegin(elementTypeId: Byte, listSize: Int) {
         writeByte(elementTypeId)
         writeI32(listSize)
     }
 
-    @Throws(IOException::class)
-    override fun writeListEnd() {
+    override suspend fun writeListEnd() {
     }
 
-    @Throws(IOException::class)
-    override fun writeSetBegin(elementTypeId: Byte, setSize: Int) {
+    override suspend fun writeSetBegin(elementTypeId: Byte, setSize: Int) {
         writeByte(elementTypeId)
         writeI32(setSize)
     }
 
-    @Throws(IOException::class)
-    override fun writeSetEnd() {
+    override suspend fun writeSetEnd() {
     }
 
-    @Throws(IOException::class)
-    override fun writeBool(b: Boolean) {
+    override suspend fun writeBool(b: Boolean) {
         writeByte(if (b) 1.toByte() else 0.toByte())
     }
 
-    @Throws(IOException::class)
-    override fun writeByte(b: Byte) {
+    override suspend fun writeByte(b: Byte) {
         buffer[0] = b
         transport.write(buffer, 0, 1)
     }
 
-    @Throws(IOException::class)
-    override fun writeI16(i16: Short) {
+    override suspend fun writeI16(i16: Short) {
         buffer[0] = ((i16.toInt() shr 8) and 0xFF).toByte()
         buffer[1] = (i16.toInt() and 0xFF).toByte()
         transport.write(buffer, 0, 2)
     }
 
-    @Throws(IOException::class)
-    override fun writeI32(i32: Int) {
+    override suspend fun writeI32(i32: Int) {
         buffer[0] = ((i32 shr 24) and 0xFF).toByte()
         buffer[1] = ((i32 shr 16) and 0xFF).toByte()
         buffer[2] = ((i32 shr 8) and 0xFF).toByte()
@@ -154,8 +136,7 @@ class BinaryProtocol @JvmOverloads constructor(
         transport.write(buffer, 0, 4)
     }
 
-    @Throws(IOException::class)
-    override fun writeI64(i64: Long) {
+    override suspend fun writeI64(i64: Long) {
         buffer[0] = ((i64 shr 56) and 0xFF).toByte()
         buffer[1] = ((i64 shr 48) and 0xFF).toByte()
         buffer[2] = ((i64 shr 40) and 0xFF).toByte()
@@ -167,27 +148,23 @@ class BinaryProtocol @JvmOverloads constructor(
         transport.write(buffer, 0, 8)
     }
 
-    @Throws(IOException::class)
-    override fun writeDouble(dub: Double) {
+    override suspend fun writeDouble(dub: Double) {
         writeI64(dub.toRawBits())
     }
 
-    @Throws(IOException::class)
-    override fun writeString(str: String) {
+    override suspend fun writeString(str: String) {
         val bs = str.encodeToByteArray()
         writeI32(bs.size)
         transport.write(bs)
     }
 
-    @Throws(IOException::class)
-    override fun writeBinary(buf: ByteString) {
+    override suspend fun writeBinary(buf: ByteString) {
         writeI32(buf.size)
         transport.write(buf.toByteArray())
     }
 
     //////////////////////
-    @Throws(IOException::class)
-    override fun readMessageBegin(): MessageMetadata {
+    override suspend fun readMessageBegin(): MessageMetadata {
         val size = readI32()
         return if (size < 0) {
             val version = size and VERSION_MASK
@@ -203,32 +180,26 @@ class BinaryProtocol @JvmOverloads constructor(
         }
     }
 
-    @Throws(IOException::class)
-    override fun readMessageEnd() {
+    override suspend fun readMessageEnd() {
     }
 
-    @Throws(IOException::class)
-    override fun readStructBegin(): StructMetadata {
+    override suspend fun readStructBegin(): StructMetadata {
         return NO_STRUCT
     }
 
-    @Throws(IOException::class)
-    override fun readStructEnd() {
+    override suspend fun readStructEnd() {
     }
 
-    @Throws(IOException::class)
-    override fun readFieldBegin(): FieldMetadata {
+    override suspend fun readFieldBegin(): FieldMetadata {
         val typeId = readByte()
         val fieldId = if (typeId == TType.STOP) 0 else readI16()
         return FieldMetadata("", typeId, fieldId)
     }
 
-    @Throws(IOException::class)
-    override fun readFieldEnd() {
+    override suspend fun readFieldEnd() {
     }
 
-    @Throws(IOException::class)
-    override fun readMapBegin(): MapMetadata {
+    override suspend fun readMapBegin(): MapMetadata {
         val keyTypeId = readByte()
         val valueTypeId = readByte()
         val size = readI32()
@@ -238,12 +209,10 @@ class BinaryProtocol @JvmOverloads constructor(
         return MapMetadata(keyTypeId, valueTypeId, size)
     }
 
-    @Throws(IOException::class)
-    override fun readMapEnd() {
+    override suspend fun readMapEnd() {
     }
 
-    @Throws(IOException::class)
-    override fun readListBegin(): ListMetadata {
+    override suspend fun readListBegin(): ListMetadata {
         val elementTypeId = readByte()
         val size = readI32()
         if (containerLengthLimit != -1L && size > containerLengthLimit) {
@@ -252,12 +221,10 @@ class BinaryProtocol @JvmOverloads constructor(
         return ListMetadata(elementTypeId, size)
     }
 
-    @Throws(IOException::class)
-    override fun readListEnd() {
+    override suspend fun readListEnd() {
     }
 
-    @Throws(IOException::class)
-    override fun readSetBegin(): SetMetadata {
+    override suspend fun readSetBegin(): SetMetadata {
         val elementTypeId = readByte()
         val size = readI32()
         if (containerLengthLimit != -1L && size > containerLengthLimit) {
@@ -266,30 +233,25 @@ class BinaryProtocol @JvmOverloads constructor(
         return SetMetadata(elementTypeId, size)
     }
 
-    @Throws(IOException::class)
-    override fun readSetEnd() {
+    override suspend fun readSetEnd() {
     }
 
-    @Throws(IOException::class)
-    override fun readBool(): Boolean {
+    override suspend fun readBool(): Boolean {
         return readByte().toInt() == 1
     }
 
-    @Throws(IOException::class)
-    override fun readByte(): Byte {
+    override suspend fun readByte(): Byte {
         readFully(buffer, 1)
         return buffer[0]
     }
 
-    @Throws(IOException::class)
-    override fun readI16(): Short {
+    override suspend fun readI16(): Short {
         readFully(buffer, 2)
         return (((buffer[0].toInt() and 0xFF) shl 8)
                 or (buffer[1].toInt() and 0xFF)).toShort()
     }
 
-    @Throws(IOException::class)
-    override fun readI32(): Int {
+    override suspend fun readI32(): Int {
         readFully(buffer, 4)
         return (((buffer[0].toInt() and 0xFF) shl 24)
                 or ((buffer[1].toInt() and 0xFF) shl 16)
@@ -297,8 +259,7 @@ class BinaryProtocol @JvmOverloads constructor(
                 or (buffer[3].toInt() and 0xFF))
     }
 
-    @Throws(IOException::class)
-    override fun readI64(): Long {
+    override suspend fun readI64(): Long {
         readFully(buffer, 8)
         return (((buffer[0].toLong() and 0xFFL) shl 56)
                 or ((buffer[1].toLong() and 0xFFL) shl 48)
@@ -310,13 +271,11 @@ class BinaryProtocol @JvmOverloads constructor(
                 or ((buffer[7].toLong() and 0xFFL)))
     }
 
-    @Throws(IOException::class)
-    override fun readDouble(): Double {
+    override suspend fun readDouble(): Double {
         return Double.fromBits(readI64())
     }
 
-    @Throws(IOException::class)
-    override fun readString(): String {
+    override suspend fun readString(): String {
         val sizeInBytes = readI32()
         if (stringLengthLimit != -1L && sizeInBytes > stringLengthLimit) {
             throw ProtocolException("String size limit exceeded")
@@ -324,8 +283,7 @@ class BinaryProtocol @JvmOverloads constructor(
         return readStringWithSize(sizeInBytes)
     }
 
-    @Throws(IOException::class)
-    override fun readBinary(): ByteString {
+    override suspend fun readBinary(): ByteString {
         val sizeInBytes = readI32()
         if (stringLengthLimit != -1L && sizeInBytes > stringLengthLimit) {
             throw ProtocolException("Binary size limit exceeded")
@@ -335,15 +293,13 @@ class BinaryProtocol @JvmOverloads constructor(
         return data.toByteString()
     }
 
-    @Throws(IOException::class)
-    private fun readStringWithSize(size: Int): String {
+    private suspend fun readStringWithSize(size: Int): String {
         val encoded = ByteArray(size)
         readFully(encoded, size)
         return encoded.decodeToString()
     }
 
-    @Throws(IOException::class)
-    private fun readFully(buffer: ByteArray, count: Int) {
+    private suspend fun readFully(buffer: ByteArray, count: Int) {
         var toRead = count
         var offset = 0
         while (toRead > 0) {

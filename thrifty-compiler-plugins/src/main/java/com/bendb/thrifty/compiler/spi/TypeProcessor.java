@@ -21,7 +21,7 @@
  */
 package com.bendb.thrifty.compiler.spi;
 
-import com.squareup.javapoet.TypeSpec;
+import com.squareup.kotlinpoet.TypeSpec;
 
 /**
  * When specified as part of code generation, processes all types after they

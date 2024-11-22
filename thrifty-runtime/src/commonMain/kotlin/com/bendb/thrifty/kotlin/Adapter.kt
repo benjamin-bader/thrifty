@@ -35,7 +35,7 @@ interface Adapter<T> {
      *
      * @param protocol A [Protocol] from which to read a struct.
      */
-    fun read(protocol: Protocol): T
+    suspend fun read(protocol: Protocol): T
 
     /**
      * Writes the given [struct] to the given [protocol].
@@ -43,5 +43,5 @@ interface Adapter<T> {
      * @param protocol A [Protocol] to which to write the [struct].
      * @param struct A struct to be written out.
      */
-    fun write(protocol: Protocol, struct: T)
+    suspend fun write(protocol: Protocol, struct: T)
 }

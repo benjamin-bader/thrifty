@@ -33,21 +33,15 @@ import kotlin.jvm.JvmField
 abstract class MethodCall<T>(
         @JvmField val name: String,
         @JvmField val callTypeId: Byte,
-        @JvmField val callback: ServiceMethodCallback<T>?,
 ) {
 
-    @Throws(IOException::class)
-    abstract fun send(protocol: Protocol)
+    abstract suspend fun send(protocol: Protocol)
 
-    @Throws(Exception::class)
-    abstract fun receive(protocol: Protocol, metadata: MessageMetadata): T
+    abstract suspend fun receive(protocol: Protocol, metadata: MessageMetadata): T
 
     init {
         require(callTypeId == TMessageType.CALL || callTypeId == TMessageType.ONEWAY) {
             "Unexpected call type: $callTypeId"
-        }
-        require(callback != null || callTypeId == TMessageType.ONEWAY) {
-            "callback is required"
         }
     }
 }

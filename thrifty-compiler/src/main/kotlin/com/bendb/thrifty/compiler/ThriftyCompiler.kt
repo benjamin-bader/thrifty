@@ -21,8 +21,6 @@
  */
 package com.bendb.thrifty.compiler
 
-import com.bendb.thrifty.gen.NullabilityAnnotationType
-import com.bendb.thrifty.gen.ThriftyCodeGenerator
 import com.bendb.thrifty.kgen.KotlinCodeGenerator
 import com.bendb.thrifty.schema.FieldNamingPolicy
 import com.bendb.thrifty.schema.LoadFailedException
@@ -33,19 +31,16 @@ import com.github.ajalt.clikt.output.TermUi
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.default
-import com.github.ajalt.clikt.parameters.options.deprecated
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.multiple
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
-import com.github.ajalt.clikt.parameters.options.transformAll
 import com.github.ajalt.clikt.parameters.options.validate
 import com.github.ajalt.clikt.parameters.types.choice
 import com.github.ajalt.clikt.parameters.types.path
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.ArrayList
 import kotlin.system.exitProcess
 
 /**
@@ -58,15 +53,10 @@ import kotlin.system.exitProcess
  * [--list-type=java.util.ArrayList]
  * [--set-type=java.util.HashSet]
  * [--map-type=java.util.HashMap]
- * [--lang=[java|kotlin]]
- * [--service-type=[callback|coroutine]
  * [--kt-file-per-type]
- * [--kt-struct-builders]
  * [--kt-jvm-static]
  * [--kt-big-enums]
  * [--parcelable]
- * [--use-android-annotations]
- * [--nullability-annotation-type=[none|android-support|androidx]]
  * [--omit-service-clients]
  * [--omit-file-comments]
  * file1.thrift
@@ -91,25 +81,10 @@ import kotlin.system.exitProcess
  * class name when instantiating map-typed values.  Defaults to [java.util.HashMap].
  * Android users will likely wish to substitute `android.support.v4.util.ArrayMap`.
  *
- * `--lang=[java|kotlin]` is optional, defaulting to Kotlin.  When provided, the
- * compiler will generate code in the specified language.
- *
- * `--service-type=[coroutine|callback]` is optional, defaulting to `callback`.  When
- * provided, controls the style of interface generated for Thrift services.  `callback`
- * will result in services whose methods accept a callback object, to which their results
- * will be delivered.  `coroutine` will result in services whose methods are suspend
- * functions, and whose results are returned normally.  `coroutine` implies `--lang=kotlin`
- * and has no effect when Java code is being generated.
- *
  * `--kt-file-per-type` is optional.  When specified, one Kotlin file will be generated
  * for each top-level generated Thrift type.  When absent (the default), all generated
  * types in a single package will go in one file named `ThriftTypes.kt`.  Implies
  * `--lang=kotlin`.
- *
- * `--kt-struct-builders` is optional.  When specified, Kotlin structs will be generated
- * with inner 'Builder' classes, in the same manner as Java code.  The Kotlin default is
- * to use pure data classes.  This option is for retaining compatibility in codebases using
- * older Thrifty versions, and should be avoided in new code.  Implies `--lang=kotlin`.
  *
  * `--kt-jvm-static` is optional.  When specified, certain companion-object functions will
  * be annotated with [JvmStatic].  This option is for those who want easier Java interop,
@@ -124,46 +99,17 @@ import kotlin.system.exitProcess
  * `--parcelable` is optional.  When provided, generated types will contain a
  * `Parcelable` implementation.  Kotlin types will use the `@Parcelize` extension.
  *
- * `--use-android-annotations` (deprecated) is optional.  When specified, generated Java classes
- * will have `@android.support.annotation.Nullable` or `@android.support.annotation.NotNull`
- * annotations, as appropriate.  Has no effect on Kotlin code.  Note: This option is superseded by
- * `--nullability-annotation-type`.  Setting this is equivalent to
- * `--nullability-annotation-type=android-support`.
- *
- * `--nullability-annotation-type=[none|android-support|androidx]` is optional, defaulting to
- * `none`.  When specified as something other than `none`, generated Java classes will have
- * `@Nullable` or `@NotNull` annotations, as appropriate.  Since AndroidX was introduced, these
- * annotations were repackaged from `android.support.annotation` to `androidx.annotation`.  Use
- * the `android-support` option for projects that are using the Android Support Library and have
- * not migrated to AndroidX.  Use the `androidx` option for projects that have migrated to AndroidX.
- * Has no effect on Kotlin code.  This flag implies '--lang=java'.
- *
  * `--omit-service-clients` is optional.  When specified, no service clients are generated.
  *
  * `--omit-file-comments` is optional.  When specified, no file-header comment is generated.
  * The default behavior is to prefix generated files with a comment indicating that they
  * are generated by Thrifty, and should probably not be modified by hand.
  *
- * `--experimental-kt-builder-required-ctor` is optional. When specified, Generate struct Builder
- * constructor with required parameters, and marks empty Builder constructor as deprecated. Helpful
- * when needing a compile time check that required parameters are supplied to the struct. This
- * also marks the empty Builder constructor as deprecated in favor of the required one
- *
  * If no .thrift files are given, then all .thrift files located on the search path
  * will be implicitly included; otherwise only the given files (and those included by them)
  * will be compiled.
  */
 class ThriftyCompiler {
-
-    enum class Language {
-        JAVA,
-        KOTLIN
-    }
-
-    enum class ServiceInterfaceType {
-        CALLBACK,
-        COROUTINE
-    }
 
     private val cli = object : CliktCommand(
             name = "thrifty-compiler",
@@ -178,10 +124,6 @@ class ThriftyCompiler {
                 .path(mustExist = true, canBeDir = true, canBeFile = false)
                 .multiple()
 
-        val language: Language? by option(
-                        "-l", "--lang", help = "the target language for generated code.  Default is kotlin.")
-                .choice("java" to Language.JAVA, "kotlin" to Language.KOTLIN)
-
         val nameStyle: FieldNamingPolicy by option(
                         "--name-style",
                         help = "Format style for generated names.  Default is to leave names unaltered.")
@@ -191,25 +133,6 @@ class ThriftyCompiler {
         val listTypeName: String? by option("--list-type", help = "when specified, the concrete type to use for lists")
         val setTypeName: String? by option("--set-type", help =  "when specified, the concrete type to use for sets")
         val mapTypeName: String? by option("--map-type", help = "when specified, the concrete type to use for maps")
-
-        val emitNullabilityAnnotations: Boolean by option("--use-android-annotations", hidden = true)
-                .flag(default = false)
-                .deprecated("Equivalent to --nullability-annotation-type=android-support")
-
-        val nullabilityAnnotationType: NullabilityAnnotationType by option(
-                        "--nullability-annotation-type",
-                        help = "the type of nullability annotations, if any, to add to fields.  Default is none.  Implies --lang=java.")
-                .choice(
-                        "none" to NullabilityAnnotationType.NONE,
-                        "android-support" to NullabilityAnnotationType.ANDROID_SUPPORT,
-                        "androidx" to NullabilityAnnotationType.ANDROIDX)
-                .transformAll {
-                    it.lastOrNull() ?: if (emitNullabilityAnnotations) {
-                        NullabilityAnnotationType.ANDROID_SUPPORT
-                    } else {
-                        NullabilityAnnotationType.NONE
-                    }
-                }
 
         val emitParcelable: Boolean by option("--parcelable",
                     help = "When set, generates Parcelable implementations for structs")
@@ -235,26 +158,12 @@ class ThriftyCompiler {
                     "--kt-file-per-type", help = "Generate one .kt file per type; default is one per namespace.")
                 .flag(default = false)
 
-        val kotlinBuilderRequiredConstructor: Boolean by option("--experimental-kt-builder-required-ctor",
-                    help = "Generate struct Builder constructor with required parameters, and mark empty Builder constructor as deprecated")
-                .flag(default = false)
-
-        val kotlinStructBuilders: Boolean by option("--kt-struct-builders",
-                    help = "Generate builders for struct types.  This is deprecated and for compatibility with existing code only.")
-                .flag("--kt-no-struct-builders", default = false)
-
         val kotlinEmitJvmStatic: Boolean by option("--kt-jvm-static",
                     help = "Add @JvmStatic annotations to companion-object functions.  For ease-of-use with Java code.")
                 .flag("--kt-no-jvm-static", default = false)
 
         val kotlinBigEnums: Boolean by option("--kt-big-enums")
                 .flag("--kt-no-big-enums", default = false)
-
-        val serviceType: ServiceInterfaceType by option(
-                "--service-type",
-                help = "The style of interface for generated service clients; default is callbacks.")
-            .choice("callback" to ServiceInterfaceType.CALLBACK, "coroutine" to ServiceInterfaceType.COROUTINE)
-            .default(ServiceInterfaceType.CALLBACK)
 
         val thriftFiles: List<Path> by argument(help = "All .thrift files to compile")
                 .path(mustExist = true, canBeFile = true, canBeDir = false, mustBeReadable = true)
@@ -290,61 +199,11 @@ class ThriftyCompiler {
                 return
             }
 
-            val impliedLanguage = when {
-                kotlinStructBuilders -> Language.KOTLIN
-                kotlinBuilderRequiredConstructor -> Language.KOTLIN
-                kotlinFilePerType -> Language.KOTLIN
-                kotlinEmitJvmName -> Language.KOTLIN
-                kotlinEmitJvmStatic -> Language.KOTLIN
-                kotlinBigEnums -> Language.KOTLIN
-                serviceType == ServiceInterfaceType.COROUTINE -> Language.KOTLIN
-                nullabilityAnnotationType != NullabilityAnnotationType.NONE -> Language.JAVA
-                else -> null
-            }
-
-            if (language != null && impliedLanguage != null && impliedLanguage != language) {
-                TermUi.echo(
-                        "You specified $language, but provided options implying $impliedLanguage (which will be ignored).",
-                        err = true)
-            }
-
-            if (emitNullabilityAnnotations) {
-                TermUi.echo("Warning: --use-android-annotations is deprecated and superseded by the --nullability-annotation-type option.")
-            }
-
-            when (language ?: impliedLanguage) {
-                null,
-                Language.KOTLIN -> generateKotlin(schema)
-                Language.JAVA -> generateJava(schema)
-            }
-        }
-
-        private fun generateJava(schema: Schema) {
-            var gen = ThriftyCodeGenerator(schema, nameStyle)
-            listTypeName?.let { gen = gen.withListType(it) }
-            setTypeName?.let { gen = gen.withSetType(it) }
-            mapTypeName?.let { gen = gen.withMapType(it) }
-
-            val svc = TypeProcessorService.getInstance()
-            val processor = svc.javaProcessor
-            if (processor != null) {
-                gen = gen.usingTypeProcessor(processor)
-            }
-
-            gen.nullabilityAnnotationType(nullabilityAnnotationType)
-            gen.emitFileComment(!omitFileComments)
-            gen.emitParcelable(emitParcelable)
-            gen.failOnUnknownEnumValues(failOnUnknownEnumValues)
-
-            gen.generate(outputDirectory)
+            generateKotlin(schema)
         }
 
         private fun generateKotlin(schema: Schema) {
             val gen = KotlinCodeGenerator(nameStyle)
-
-            if (nullabilityAnnotationType != NullabilityAnnotationType.NONE) {
-                TermUi.echo("Warning: Nullability annotations are unnecessary in Kotlin and will not be generated")
-            }
 
             if (emitParcelable) {
                 gen.parcelize()
@@ -384,20 +243,8 @@ class ThriftyCompiler {
             setTypeName?.let { gen.setClassName(it) }
             mapTypeName?.let { gen.mapClassName(it) }
 
-            if (kotlinStructBuilders) {
-                gen.withDataClassBuilders()
-            }
-
-            if (kotlinBuilderRequiredConstructor) {
-                gen.builderRequiredConstructor()
-            }
-
-            if (serviceType == ServiceInterfaceType.COROUTINE) {
-                gen.coroutineServiceClients()
-            }
-
             val svc = TypeProcessorService.getInstance()
-            svc.kotlinProcessor?.let {
+            svc.processor?.let {
                 gen.processor = it
             }
 

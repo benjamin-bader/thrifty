@@ -22,7 +22,6 @@
 package com.bendb.thrifty.gradle;
 
 import com.bendb.thrifty.compiler.TypeProcessorService;
-import com.bendb.thrifty.compiler.spi.KotlinTypeProcessor;
 import com.bendb.thrifty.compiler.spi.TypeProcessor;
 import com.bendb.thrifty.kgen.KotlinCodeGenerator;
 import com.bendb.thrifty.schema.ErrorReporter;
@@ -30,10 +29,7 @@ import com.bendb.thrifty.schema.FieldNamingPolicy;
 import com.bendb.thrifty.schema.LoadFailedException;
 import com.bendb.thrifty.schema.Loader;
 import com.bendb.thrifty.schema.Schema;
-import com.bendb.thrifty.gen.NullabilityAnnotationType;
-import com.bendb.thrifty.gen.ThriftyCodeGenerator;
-import com.bendb.thrifty.gradle.JavaThriftOptions.NullabilityAnnotations;
-import com.bendb.thrifty.gradle.KotlinThriftOptions.ClientStyle;
+import com.squareup.kotlinpoet.FileSpec;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.workers.WorkAction;
@@ -97,10 +93,9 @@ public abstract class GenerateThriftSourcesWorkAction implements WorkAction<Gene
         SerializableThriftOptions opts = getParameters().getThriftOptions().get();
         if (opts.isKotlin()) {
             generateKotlinThrifts(schema, opts);
-        } else if (opts.isJava()) {
-            generateJavaThrifts(schema, opts);
         } else {
-            throw new IllegalStateException("Only Java or Kotlin thrift options are supported");
+            // TODO: Refactor ThriftOptions, etc
+            throw new IllegalStateException("Only Kotlin thrift options are supported");
         }
     }
 
@@ -156,29 +151,8 @@ public abstract class GenerateThriftSourcesWorkAction implements WorkAction<Gene
 
         SerializableThriftOptions.Kotlin kopt = opts.getKotlinOpts();
 
-        if (opts.isGenerateServiceClients()) {
-            ClientStyle serviceClientStyle = kopt.getServiceClientStyle();
-            if (serviceClientStyle == null) {
-                serviceClientStyle = ClientStyle.DEFAULT;
-            }
-
-            switch (serviceClientStyle) {
-                case DEFAULT:
-                    // no-op
-                    break;
-                case NONE:
-                    gen.omitServiceClients();
-                    break;
-                case COROUTINE:
-                    gen.coroutineServiceClients();
-                    break;
-            }
-        } else {
+        if (!opts.isGenerateServiceClients()) {
             gen.omitServiceClients();
-        }
-
-        if (kopt.isStructBuilders()) {
-            gen.withDataClassBuilders();
         }
 
         if (kopt.isGenerateServer()) {
@@ -198,65 +172,14 @@ public abstract class GenerateThriftSourcesWorkAction implements WorkAction<Gene
         }
 
         TypeProcessorService typeProcessorService = TypeProcessorService.getInstance();
-        KotlinTypeProcessor kotlinProcessor = typeProcessorService.getKotlinProcessor();
+        TypeProcessor kotlinProcessor = typeProcessorService.getProcessor();
         if (kotlinProcessor != null) {
             gen.setProcessor(kotlinProcessor);
         }
 
-        for (com.squareup.kotlinpoet.FileSpec fs : gen.generate(schema)) {
+        for (FileSpec fs : gen.generate(schema)) {
             fs.writeTo(getParameters().getOutputDirectory().getAsFile().get());
         }
-    }
-
-    private void generateJavaThrifts(Schema schema, SerializableThriftOptions opts) {
-        ThriftyCodeGenerator gen = new ThriftyCodeGenerator(schema, policyFromNameStyle(opts.getNameStyle()));
-        gen.emitFileComment(true);
-        gen.emitParcelable(opts.isParcelable());
-        gen.failOnUnknownEnumValues(!opts.isAllowUnknownEnumValues());
-
-        if (opts.getListType() != null) {
-            gen.withListType(opts.getListType());
-        }
-
-        if (opts.getSetType() != null) {
-            gen.withSetType(opts.getSetType());
-        }
-
-        if (opts.getMapType() != null) {
-            gen.withMapType(opts.getMapType());
-        }
-
-        SerializableThriftOptions.Java jopt = opts.getJavaOpts();
-
-        NullabilityAnnotations anno = jopt.getNullabilityAnnotations();
-        if (anno == null) {
-            anno = NullabilityAnnotations.NONE;
-        }
-
-        switch (anno) {
-            case NONE:
-                gen.nullabilityAnnotationType(NullabilityAnnotationType.NONE);
-                break;
-
-            case ANDROID_SUPPORT:
-                gen.nullabilityAnnotationType(NullabilityAnnotationType.ANDROID_SUPPORT);
-                break;
-
-            case ANDROIDX:
-                gen.nullabilityAnnotationType(NullabilityAnnotationType.ANDROIDX);
-                break;
-
-            default:
-                throw new IllegalStateException("Unexpected NullabilityAnnotations value: " + anno);
-        }
-
-        TypeProcessorService typeProcessorService = TypeProcessorService.getInstance();
-        TypeProcessor typeProcessor = typeProcessorService.getJavaProcessor();
-        if (typeProcessor != null) {
-            gen.usingTypeProcessor(typeProcessor);
-        }
-
-        gen.generate(getParameters().getOutputDirectory().getAsFile().get());
     }
 
     private static FieldNamingPolicy policyFromNameStyle(FieldNameStyle style) {

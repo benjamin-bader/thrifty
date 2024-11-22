@@ -21,53 +21,23 @@
  */
 package com.bendb.thrifty.gradle;
 
-import com.bendb.thrifty.gradle.JavaThriftOptions.NullabilityAnnotations;
-import com.bendb.thrifty.gradle.KotlinThriftOptions.ClientStyle;
-
 import java.io.Serializable;
 
 // Can't just use ThriftOptions cuz Gradle decorates them with non-serializable types,
 // and we need to pass these options to Worker API params that must be serializable.
 class SerializableThriftOptions implements Serializable {
     static class Kotlin implements Serializable {
-        private ClientStyle serviceClientStyle;
-        private boolean structBuilders;
         private boolean generateServer;
 
         // Required for Serializable
         Kotlin() {}
 
-        public Kotlin(ClientStyle serviceClientStyle, boolean structBuilders, boolean generateServer) {
-            this.serviceClientStyle = serviceClientStyle;
-            this.structBuilders = structBuilders;
+        public Kotlin(boolean generateServer) {
             this.generateServer = generateServer;
-        }
-
-        public ClientStyle getServiceClientStyle() {
-            return serviceClientStyle;
-        }
-
-        public boolean isStructBuilders() {
-            return structBuilders;
         }
 
         public boolean isGenerateServer() {
             return generateServer;
-        }
-    }
-
-    static class Java implements Serializable {
-        private NullabilityAnnotations nullabilityAnnotations;
-
-        // Required for Serializable
-        Java() {}
-
-        public Java(NullabilityAnnotations nullabilityAnnotations) {
-            this.nullabilityAnnotations = nullabilityAnnotations;
-        }
-
-        public NullabilityAnnotations getNullabilityAnnotations() {
-            return nullabilityAnnotations;
         }
     }
 
@@ -79,7 +49,6 @@ class SerializableThriftOptions implements Serializable {
     private boolean parcelable = false;
     private boolean allowUnknownEnumValues = false;
     private Kotlin kotlinOpts;
-    private Java javaOpts;
 
     // For Serializable
     SerializableThriftOptions() {}
@@ -95,10 +64,7 @@ class SerializableThriftOptions implements Serializable {
 
         if (options instanceof KotlinThriftOptions) {
             KotlinThriftOptions kto = (KotlinThriftOptions) options;
-            this.kotlinOpts = new Kotlin(kto.getServiceClientStyle(), kto.getStructBuilders(), kto.isGenerateServer());
-        } else if (options instanceof JavaThriftOptions) {
-            JavaThriftOptions jto = (JavaThriftOptions) options;
-            this.javaOpts = new Java(jto.getNullabilityAnnotations());
+            this.kotlinOpts = new Kotlin(kto.isGenerateServer());
         } else {
             throw new IllegalArgumentException("Unexpected thrift-options type:" + options);
         }
@@ -134,14 +100,6 @@ class SerializableThriftOptions implements Serializable {
 
     public Kotlin getKotlinOpts() {
         return kotlinOpts;
-    }
-
-    public Java getJavaOpts() {
-        return javaOpts;
-    }
-
-    public boolean isJava() {
-        return javaOpts != null;
     }
 
     public boolean isKotlin() {

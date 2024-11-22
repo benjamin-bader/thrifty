@@ -22,20 +22,15 @@
 package com.bendb.thrifty.transport
 
 import okio.Closeable
-import okio.IOException
 
 interface Transport : Closeable {
-    @Throws(IOException::class)
-    fun read(buffer: ByteArray, offset: Int, count: Int): Int
+    suspend fun read(buffer: ByteArray, offset: Int, count: Int): Int
 
-    @Throws(IOException::class)
-    fun write(data: ByteArray) {
+    suspend fun write(data: ByteArray) {
         write(data, 0, data.size)
     }
 
-    @Throws(IOException::class)
-    fun write(buffer: ByteArray, offset: Int, count: Int)
+    suspend fun write(buffer: ByteArray, offset: Int, count: Int)
 
-    @Throws(IOException::class)
-    fun flush()
+    suspend fun flush()
 }
