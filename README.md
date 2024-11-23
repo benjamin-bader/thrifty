@@ -183,7 +183,7 @@ public data class SearchResult(
   @ThriftField(fieldId = 3, isRequired = true)
   public val lastUpdatedMillis: Long
 ) : Struct {
-  public override fun write(protocol: Protocol): Unit {
+  public override suspend fun write(protocol: Protocol): Unit {
     ADAPTER.write(protocol, this)
   }
 
@@ -222,30 +222,11 @@ val transport = SocketTransport.Builder("thrift.google.com", 80).build().apply {
 val protocol = BinaryProtocol(transport)
 
 // Generated clients do the plumbing
-val client = GoogleClient(protocol, object : AsyncClientBase.Listener {
-    override fun onTransportClosed() {
-
-    }
-
-    override fun onError(throwable: Throwable) {
-        throw AssertionError(throwable)
-    }
-})
+val client = GoogleClient(protocol, Dispatchers.IO)
 
 val query = Query(text = "thrift vs protocol buffers")
 
-// RPC clients are asynchronous and callback-based
-client.search(query, object : ServiceMethodCallback<List<SearchResult>> {
-    override fun onSuccess(response: List<SearchResult>) {
-        // yay
-    }
-
-    override fun onError(throwable: Throwable) {
-        Log.e("GoogleClient", "Search error: $throwable")
-    }
-})
-
-// ...unless coroutine clients were generated:
+// RPC clients are coroutine-based
 val results = async { client.search(query) }.await()
 
 ```
@@ -302,50 +283,17 @@ Obfuscated fields that are collections are not hashed; instead, their type is pr
 Close readers will note that the compiler will also respond to `@redacted` and `@obfuscated` in field documentation; this is currently valid *but not supported
 and subject to change in future releases*.  It is a legacy from the time before Thrifty implemented Thrift annotations.
 
-## Java Support
-
-Thrifty generates Kotlin code by default, but if needed it can also produce Java.  Generated Java code has very slightly
-more method references than Kotlin.  Instead of data classes, Java structs are final classes with public final fields,
-and are constructable only with dedicated `Builder` types.
-
-To generate Java classes, pass `--lang=java` to the compiler (if using the command-line compiler), or provide a `java {}` block
-within the thrifty Gradle plugin configuration block.
-
-## Language-specific command-line options
-### Kotlin-specific command-line options
-
-There are a few new command-line options to control Kotlin code generation:
+There are a few command-line options to control Kotlin code generation:
 
 ```
 java -jar thrifty-compiler.jar \
-    --lang=kotlin \
-    --service-type=coroutine \
     --kt-file-per-type \
     --omit-file-comments \
-    --kt-struct-builders \
     --experimental-kt-generate-server \
     ...
 ```
 
-By default, generated service clients are callback-based:
-
-```kotlin
-public interface Google {
-  public fun search(query: Query, callback: ServiceMethodCallback<List<SearchResult>>)
-}
-```
-
-If, instead, you wish to have a coroutine-based client, specify `--service-type=coroutine`:
-
-```kotlin
-public interface Google {
-  public suspend fun search(query: Query): List<SearchResult>
-}
-```
-
-Builders are unnecessary, and are not included by default.  For compatibility with older code, you can use the `--kt-struct-builders` flag, which will result in Java-style classes with Builders.
-
-By default, Thrifty generates one Kotlin file per JVM package.  For larger thrift files, this can be a little hard on the Kotlin compiler.  If you find build times or IDE performance suffering, the `--kt-file-per-type` flag can help.  Outlook Mobile's single, large, Kotlin file took up to one minute just to typecheck, using Kotlin 1.2.51!  For these cases, `--kt-file-per-type` will tell Thrifty to generate one single file per top-level class - just like the Java code.
+By default, Thrifty generates one Kotlin file per JVM package.  For larger thrift files, this can be a little hard on the Kotlin compiler.  If you find build times or IDE performance suffering, the `--kt-file-per-type` flag can help.  Outlook Mobile's single, large, Kotlin file took up to one minute just to typecheck, using Kotlin 1.2.51!  For these cases, `--kt-file-per-type` will tell Thrifty to generate one single file per top-level class.
 
 `--experimental-kt-generate-server` enabled code generation for the server portion of a thrift service. You can
 use this to implement a thrift server with the same benefits as the kotlin client: no runtime surprises thanks to
@@ -362,12 +310,6 @@ and the code will take care of reading the request, passing it to the handler an
 
 If you want to use it, you need to wrap an appropriate communication layer around it, e.g. an HTTP server.
 You can have a look at the [integration tests](thrifty-integration-tests/src/test/kotlin/com/bendb/thrifty/integration/conformance/server/TestServer.kt) for a basic example.
-
-### Java-specific command-line options
-
-Thrifty can be made to add various kinds of nullability annotations to Java types with the `--nullability-annotation-type` flag.  Valid options are
-`none` (the default), `android-support`, and `androidx`.  Specifying `android-support` will cause generated code to use `@Nullable` and `@NonNull` from
-the `android.support.annotation` package.  Similarly, specifying `androidx` will use analogous annotations from `androidx.annotation`. 
 
 ## Thanks
 
