@@ -12,7 +12,7 @@ import org.gradle.jvm.toolchain.JavaToolchainSpec
  * in the future.
  */
 object Toolchain {
-    val languageVersion = JavaLanguageVersion.of(19)
+    val languageVersion = JavaLanguageVersion.of(21)
 
     fun apply(spec: JavaToolchainSpec) {
         spec.languageVersion.set(languageVersion)

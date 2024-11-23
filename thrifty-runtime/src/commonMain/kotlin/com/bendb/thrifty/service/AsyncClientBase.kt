@@ -23,12 +23,15 @@ package com.bendb.thrifty.service
 
 import com.bendb.thrifty.Struct
 import com.bendb.thrifty.protocol.Protocol
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import okio.Closeable
 
 /**
@@ -42,63 +45,40 @@ import okio.Closeable
  * objects appropriately.
  *
  * @param protocol the [Protocol] used to encode/decode requests and responses.
- * @param listener a callback object to receive client-level events.
+ * @param dispatcher an optional [CoroutineDispatcher] to use for executing requests.
  */
-@OptIn(ExperimentalCoroutinesApi::class)
 abstract class AsyncClientBase protected constructor(
-    // todo: name of the service
     protocol: Protocol,
-    listener: Listener
+    dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ClientBase(protocol), Closeable {
-    private val dispatcher = Dispatchers.Default.limitedParallelism(parallelism = 1)
-    private val job = SupervisorJob()
-    private val scope = CoroutineScope(dispatcher + job)
+    private val dispatcher = dispatcher.limitedParallelism(parallelism = 1)
+    private val lock = Mutex()
 
-    /**
-     * Exposes important events in the client's lifecycle.
-     */
-    interface Listener {
-        /**
-         * Invoked when the client connection has been closed.
-         *
-         * After invocation, the client is no longer usable.  All subsequent
-         * method call attempts will result in an immediate exception on the
-         * calling thread.
-         */
-        fun onTransportClosed()
-
-        /**
-         * Invoked when a client-level error has occurred.
-         *
-         * This generally indicates a connectivity or protocol error,
-         * and is distinct from errors returned as part of normal service
-         * operation.
-         *
-         * The client is guaranteed to have been closed and shut down
-         * by the time this method is invoked.
-         *
-         * @param error the throwable instance representing the error.
-         */
-        fun onError(error: Throwable)
-    }
+    private val mutableState = MutableStateFlow<ClientState>(ClientState.Running)
+    val state: StateFlow<ClientState>
+        get() = mutableState
 
     protected suspend fun <T> executeMethodCall(methodCall: MethodCall<T>): T {
         check(running.value) { "Cannot write to a closed service client" }
 
-        return try {
-            scope.async { invokeRequest(methodCall) }.await()
-        } catch (e: ServerException) {
-            throw e.thriftException
-        } catch (e: Throwable) {
-            if (e is Struct) {
-                // In this case, the server has returned an exception that is a Thrift struct
-                // and which therefore is part of the service-method contract.
+        return supervisorScope {
+            try {
+                withContext(dispatcher) {
+                    lock.withLock { invokeRequest(methodCall) }
+                }
+            } catch (e: ServerException) {
+                throw e.thriftException
+            } catch (e: Throwable) {
+                if (e is Struct) {
+                    // In this case, the server has returned an exception that is a Thrift struct
+                    // and which therefore is part of the service-method contract.
+                    throw e
+                }
+
+                // Any other error results in the client being closed
+                closeWithException(e)
                 throw e
             }
-
-            // Any other error results in the client being closed
-            closeWithException(e)
-            throw e
         }
     }
 
@@ -111,7 +91,15 @@ abstract class AsyncClientBase protected constructor(
             return
         }
 
-        scope.cancel()
+        val newState = if (cause == null) ClientState.Closed else ClientState.Failed(cause)
+        mutableState.value = newState
+
         closeProtocol()
     }
+}
+
+sealed interface ClientState {
+    data object Running : ClientState
+    data object Closed : ClientState
+    data class Failed(val error: Throwable) : ClientState
 }

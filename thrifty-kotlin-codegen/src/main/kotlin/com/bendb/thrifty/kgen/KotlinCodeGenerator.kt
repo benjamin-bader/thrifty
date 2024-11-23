@@ -112,6 +112,8 @@ private object Tags {
 // to JVM types), or because they are just constant and there's no reason
 // to instantiate a bunch of them.
 private object ClassNames {
+    val COROUTINE_DISPATCHER = ClassName("kotlinx.coroutines", "CoroutineDispatcher")
+    val DISPATCHERS = ClassName("kotlinx.coroutines", "Dispatchers")
     val EXCEPTION = ClassName("kotlin", "Exception")
     val ILLEGAL_ARGUMENT_EXCEPTION = ClassName("kotlin", "IllegalArgumentException")
     val THROWABLE = ClassName("kotlin", "Throwable")
@@ -1912,11 +1914,13 @@ class KotlinCodeGenerator(
 
             primaryConstructor(FunSpec.constructorBuilder()
                     .addParameter("protocol", Protocol::class)
-                    .addParameter("listener", AsyncClientBase.Listener::class)
+                    .addParameter(ParameterSpec.builder("dispatcher", ClassNames.COROUTINE_DISPATCHER)
+                        .defaultValue("%T.%M", ClassNames.DISPATCHERS, MemberName("kotlinx.coroutines", "IO"))
+                        .build())
                     .build())
 
             addSuperclassConstructorParameter("protocol", Protocol::class)
-            addSuperclassConstructorParameter("listener", AsyncClientBase.Listener::class)
+            addSuperclassConstructorParameter("dispatcher", ClassNames.COROUTINE_DISPATCHER)
         }
 
         for ((index, interfaceFun) in serviceInterface.funSpecs.withIndex()) {

@@ -90,6 +90,7 @@ class FramedTransport(
         headerBytes[3] = ( size         and 0xFF).toByte()
         inner.write(headerBytes)
         inner.write(write.buf, 0, size)
+        inner.flush()
         write.reset()
     }
 

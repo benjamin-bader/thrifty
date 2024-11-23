@@ -48,10 +48,6 @@ kotlin {
                 baseName = "Thrifty"
             }
         }
-
-        compilations.main.cinterops {
-            KT62102Workaround {}
-        }
     }
 
     iosX64 {
@@ -60,16 +56,13 @@ kotlin {
                 baseName = "Thrifty"
             }
         }
-
-        compilations.main.cinterops {
-            KT62102Workaround {}
-        }
     }
 
     sourceSets {
-        all {
+        configureEach {
             languageSettings {
                 optIn("kotlin.ExperimentalMultiplatform")
+                optIn("kotlinx.coroutines.ExperimentalCoroutinesApi")
             }
         }
 
@@ -80,6 +73,8 @@ kotlin {
                 api libs.okio
 
                 implementation libs.atomicfu.common
+                implementation libs.ktor.network
+                implementation libs.ktor.networkTls
             }
         }
 
@@ -108,30 +103,12 @@ kotlin {
             dependsOn commonMain
         }
 
-        iosTest {
-            dependsOn commonTest
-
-            dependencies {
-                implementation libs.kotlin.test.common
-                implementation libs.kotest.assertions.common
-                implementation libs.kotest.assertions.core
-            }
-        }
-
         iosArm64Main {
             dependsOn iosMain
         }
 
-        iosArm64Test {
-            dependsOn iosTest
-        }
-
         iosX64Main {
             dependsOn iosMain
-        }
-
-        iosX64Test {
-            dependsOn iosTest
         }
     }
 }
@@ -140,20 +117,20 @@ jvmTest {
     useJUnitPlatform()
 }
 
-tasks.register("iosTest") {
-    def device = project.findProperty("iosDevice")?.toString() ?: "iPhone 14 Pro Max"
-    dependsOn 'linkDebugTestIosX64'
-    group = JavaBasePlugin.VERIFICATION_GROUP
-    description = "Runs tests for target 'ios' on an iOS simulator"
-
-    doLast {
-        def binary = kotlin.targets.iosX64.binaries.getTest('DEBUG').outputFile
-        println("muh binary: ${binary.absolutePath}")
-        exec {
-            commandLine 'xcrun', 'simctl', 'spawn', device, binary.absolutePath
-        }
-    }
-}
+//tasks.register("iosTest") {
+//    def device = project.findProperty("iosDevice")?.toString() ?: "iPhone 14 Pro Max"
+//    dependsOn 'linkDebugTestIosX64'
+//    group = JavaBasePlugin.VERIFICATION_GROUP
+//    description = "Runs tests for target 'ios' on an iOS simulator"
+//
+//    doLast {
+//        def binary = kotlin.targets.iosX64.binaries.getTest('DEBUG').outputFile
+//        println("muh binary: ${binary.absolutePath}")
+//        exec {
+//            commandLine 'xcrun', 'simctl', 'spawn', device, binary.absolutePath
+//        }
+//    }
+//}
 
 // What have I gotten myself in to
 configurations {

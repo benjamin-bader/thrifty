@@ -21,27 +21,97 @@
  */
 package com.bendb.thrifty.transport
 
-//expect class SocketTransport internal constructor(
-//    builder: Builder
-//) : Transport {
-//    class Builder(host: String, port: Int) {
-//        /**
-//         * The number of milliseconds to wait for a connection to be established.
-//         */
-//        fun connectTimeout(connectTimeout: Int): Builder
-//
-//        /**
-//         * The number of milliseconds a read operation should wait for completion.
-//         */
-//        fun readTimeout(readTimeout: Int): Builder
-//
-//        /**
-//         * Enable TLS for this connection.
-//         */
-//        fun enableTls(enableTls: Boolean): Builder
-//
-//        fun build(): SocketTransport
-//    }
-//
-//    suspend fun connect()
-//}
+import io.ktor.network.selector.SelectorManager
+import io.ktor.network.sockets.Socket
+import io.ktor.network.sockets.SocketOptions
+import io.ktor.network.sockets.aSocket
+import io.ktor.network.sockets.openReadChannel
+import io.ktor.network.sockets.openWriteChannel
+import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.ByteWriteChannel
+import io.ktor.utils.io.writeFully
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlin.time.Duration
+
+// ktor doesn't have a common tls() method.  If we want to manager the tls() call,
+// we need to do it with expect/actual to reach the platform-specific APIs.
+expect suspend fun Socket.establishTls(): Socket
+
+class SocketTransport internal constructor(
+    builder: Builder
+) : Transport {
+    class Builder(
+        internal val host: String,
+        internal val port: Int,
+    ) {
+        internal var tlsEnabled: Boolean = false
+        internal var dispatcher: CoroutineDispatcher = Dispatchers.IO
+        internal var readTimeout: Duration = Duration.INFINITE
+
+        fun readTimeout(timeout: Duration): Builder = apply { readTimeout = timeout }
+
+        fun enableTls(enableTls: Boolean): Builder = apply { tlsEnabled = enableTls }
+
+        fun dispatcher(dispatcher: CoroutineDispatcher): Builder = apply { this.dispatcher = dispatcher }
+
+        fun build(): SocketTransport = SocketTransport(this)
+    }
+
+    private val host = builder.host
+    private val port = builder.port
+    private val tlsEnabled = builder.tlsEnabled
+    private val readTimeout = builder.readTimeout
+
+    private lateinit var selectorManager: SelectorManager
+    private lateinit var socket: Socket
+    private lateinit var readChannel: ByteReadChannel
+    private lateinit var writeChannel: ByteWriteChannel
+
+    override suspend fun read(buffer: ByteArray, offset: Int, count: Int): Int {
+        require(offset >= 0) { "offset cannot be negative" }
+        require(count >= 0) { "count cannot be negative" }
+        require(offset + count <= buffer.size) { "offset + count cannot exceed buffer size" }
+
+        readChannel.readFully(buffer, offset, count)
+        return count
+    }
+
+    override suspend fun write(data: ByteArray) {
+        writeChannel.writeFully(data)
+    }
+
+    override suspend fun write(buffer: ByteArray, offset: Int, count: Int) {
+        writeChannel.writeFully(buffer, offset, count)
+    }
+
+    override suspend fun flush() {
+        writeChannel.flush()
+    }
+
+    suspend fun connect() {
+        selectorManager = SelectorManager(Dispatchers.IO)
+        socket = aSocket(selectorManager)
+            .tcp()
+            .connect(host, port) {
+                keepAlive = true
+                noDelay = true
+                reuseAddress = false
+                reusePort = false
+                socketTimeout = readTimeout.inWholeMilliseconds
+            }
+
+        if (tlsEnabled) {
+            socket = socket.establishTls()
+        }
+        readChannel = socket.openReadChannel()
+        writeChannel = socket.openWriteChannel(autoFlush = false)
+    }
+
+    override fun close() {
+        writeChannel.close(null)
+        socket.close()
+        selectorManager.close()
+    }
+}

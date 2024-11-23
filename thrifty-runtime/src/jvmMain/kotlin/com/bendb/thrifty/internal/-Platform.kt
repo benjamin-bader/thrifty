@@ -21,8 +21,5 @@
  */
 package com.bendb.thrifty.internal
 
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-
 actual typealias ProtocolException = java.net.ProtocolException
 
