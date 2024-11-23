@@ -24,7 +24,6 @@ package com.bendb.thrifty.integration.conformance
 import com.bendb.thrifty.ThriftException
 import com.bendb.thrifty.binaryProtocol
 import com.bendb.thrifty.compactProtocol
-import com.bendb.thrifty.integration.DebugProtocolWrapper
 import com.bendb.thrifty.integration.kgen.coro.Bonk
 import com.bendb.thrifty.integration.kgen.coro.HasUnion
 import com.bendb.thrifty.integration.kgen.coro.Insanity
@@ -130,7 +129,7 @@ abstract class CoroutineConformanceTests {
 
         private fun createProtocol(transport: Transport): Protocol {
             return when (testServer.protocol!!) {
-                ServerProtocol.BINARY -> DebugProtocolWrapper(transport.binaryProtocol())
+                ServerProtocol.BINARY -> transport.binaryProtocol()
                 ServerProtocol.COMPACT -> transport.compactProtocol()
                 ServerProtocol.JSON -> transport.jsonProtocol()
             }
