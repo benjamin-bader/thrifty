@@ -42,7 +42,7 @@ class FramedTransport(
         pendingWrite = null
     }
 
-    override fun read(buffer: ByteArray, offset: Int, count: Int): Int {
+    override suspend fun read(buffer: ByteArray, offset: Int, count: Int): Int {
         while (remainingBytes <= 0) {
             readHeader()
         }
@@ -52,7 +52,7 @@ class FramedTransport(
         return numRead
     }
 
-    private fun readHeader() {
+    private suspend fun readHeader() {
         val headerBytes = ByteArray(4)
         var numRead = 0
         while (numRead < headerBytes.size) {
@@ -69,14 +69,14 @@ class FramedTransport(
                 or ( headerBytes[3].toInt() and 0xFF))
     }
 
-    override fun write(buffer: ByteArray, offset: Int, count: Int) {
+    override suspend fun write(buffer: ByteArray, offset: Int, count: Int) {
         if (pendingWrite == null) {
             pendingWrite = SimpleBuffer(count)
         }
         pendingWrite!!.write(buffer, offset, count)
     }
 
-    override fun flush() {
+    override suspend fun flush() {
         val write = pendingWrite ?: return
         val size = write.size
         if (size == 0) {
@@ -90,6 +90,7 @@ class FramedTransport(
         headerBytes[3] = ( size         and 0xFF).toByte()
         inner.write(headerBytes)
         inner.write(write.buf, 0, size)
+        inner.flush()
         write.reset()
     }
 

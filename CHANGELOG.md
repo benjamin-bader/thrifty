@@ -1,6 +1,12 @@
 4.0.0 (unreleased)
 ------------------
 - BREAK: Repackage to com.bendb.thrifty
+- BREAK: Remove Java code generation
+- BREAK: All Transport, Protocol, and derived APIs are now suspending.  Coroutines only!
+- BREAK: Remove all non-coroutine-based service-client styles
+- BREAK: SocketTransport is now backed by ktor-network sockets
+- BREAK: Remove all deprecated APIs
+- Add: thrifty-runtime is now fully multiplatform-compatible
 
 3.1.0 (released 13 December 2022)
 ------------------

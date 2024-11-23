@@ -30,6 +30,7 @@ import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.throwable.shouldHaveMessage
+import kotlinx.coroutines.test.runTest
 import okio.Buffer
 import okio.ByteString.Companion.encodeUtf8
 import kotlin.test.Test
@@ -39,7 +40,7 @@ class ProtocolUtilTest {
     private val protocol = BinaryProtocol(BufferTransport(buffer))
 
     @Test
-    fun skipConsumesLists() {
+    fun skipConsumesLists() = runTest {
         val strings = listOf("foo", "bar", "baz", "quux")
         protocol.writeListBegin(TType.STRING, strings.size)
         for (string in strings) {
@@ -51,7 +52,7 @@ class ProtocolUtilTest {
     }
 
     @Test
-    fun skipSets() {
+    fun skipSets() = runTest {
         val set = setOf(
                 "hello there".encodeUtf8(),
                 "here is some more test data".encodeUtf8(),
@@ -67,7 +68,7 @@ class ProtocolUtilTest {
     }
 
     @Test
-    fun skipConsumesMap() {
+    fun skipConsumesMap() = runTest {
         val map = mapOf(
                 1 to 10L,
                 2 to 20L,
@@ -85,7 +86,7 @@ class ProtocolUtilTest {
     }
 
     @Test
-    fun skipConsumesStructs() {
+    fun skipConsumesStructs() = runTest {
         val struct = Xtruct.Builder()
                 .byte_thing(1.toByte())
                 .i32_thing(3)
@@ -98,7 +99,7 @@ class ProtocolUtilTest {
     }
 
     @Test
-    fun skipListOfStructs() {
+    fun skipListOfStructs() = runTest {
         val structs = listOf(
                 Xtruct.Builder()
                         .byte_thing(1.toByte())
@@ -129,7 +130,7 @@ class ProtocolUtilTest {
     }
 
     @Test
-    fun throwsProtocolExceptionOnUnknownTTypeValue() {
+    fun throwsProtocolExceptionOnUnknownTTypeValue() = runTest {
         protocol.writeStructBegin("Test")
         protocol.writeFieldBegin("num", 1, TType.I32)
         protocol.writeI32(2)
@@ -148,21 +149,21 @@ class ProtocolUtilTest {
     }
 
     @Test
-    fun skipsBools() {
+    fun skipsBools() = runTest {
         protocol.writeBool(true)
         ProtocolUtil.skip(protocol, TType.BOOL)
         buffer.size shouldBe 0L
     }
 
     @Test
-    fun skipsBytes() {
+    fun skipsBytes() = runTest {
         protocol.writeByte(32)
         ProtocolUtil.skip(protocol, TType.BYTE)
         buffer.size shouldBe 0L
     }
 
     @Test
-    fun skipsShorts() {
+    fun skipsShorts() = runTest {
         protocol.writeI16(16)
         buffer.size shouldNotBe 0
         ProtocolUtil.skip(protocol, TType.I16)
@@ -170,7 +171,7 @@ class ProtocolUtilTest {
     }
 
     @Test
-    fun skipsInts() {
+    fun skipsInts() = runTest {
         protocol.writeI32(32)
         buffer.size shouldNotBe 0
         ProtocolUtil.skip(protocol, TType.I32)
@@ -178,7 +179,7 @@ class ProtocolUtilTest {
     }
 
     @Test
-    fun skipsLongs() {
+    fun skipsLongs() = runTest {
         protocol.writeI64(64)
         buffer.size shouldNotBe 0
         ProtocolUtil.skip(protocol, TType.I64)
@@ -186,7 +187,7 @@ class ProtocolUtilTest {
     }
 
     @Test
-    fun skipsDoubles() {
+    fun skipsDoubles() = runTest {
         protocol.writeDouble(2.5)
         buffer.size shouldNotBe 0
         ProtocolUtil.skip(protocol, TType.DOUBLE)
@@ -194,7 +195,7 @@ class ProtocolUtilTest {
     }
 
     @Test
-    fun skipsStrings() {
+    fun skipsStrings() = runTest {
         protocol.writeString("skip me")
         buffer.size shouldNotBe 0
         ProtocolUtil.skip(protocol, TType.STRING)

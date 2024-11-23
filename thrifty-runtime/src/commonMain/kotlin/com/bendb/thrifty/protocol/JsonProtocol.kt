@@ -93,7 +93,7 @@ class JsonProtocol @JvmOverloads constructor(
         }
     }
 
-    override fun reset() {
+    override suspend fun reset() {
         contextStack.clear()
         context = JsonBaseContext()
         reader = LookaheadReader()
@@ -105,8 +105,7 @@ class JsonProtocol @JvmOverloads constructor(
     // Read a byte that must match b[0]; otherwise an exception is thrown.
     // Marked protected to avoid synthetic accessor in JsonListContext.read
     // and JsonPairContext.read
-    @Throws(IOException::class)
-    private fun readJsonSyntaxChar(b: ByteArray) {
+    private suspend fun readJsonSyntaxChar(b: ByteArray) {
         val ch = reader.read()
         if (ch != b[0]) {
             throw ProtocolException("Unexpected character:" + ch.toInt().toChar())
@@ -114,8 +113,7 @@ class JsonProtocol @JvmOverloads constructor(
     }
 
     // Write the bytes in array buf as a Json characters, escaping as needed
-    @Throws(IOException::class)
-    private fun writeJsonString(b: ByteArray) {
+    private suspend fun writeJsonString(b: ByteArray) {
         context.write()
         transport.write(QUOTE)
         val len = b.size
@@ -151,8 +149,7 @@ class JsonProtocol @JvmOverloads constructor(
 
     // Write out number as a Json value. If the context dictates so, it will be
     // wrapped in quotes to output as a Json string.
-    @Throws(IOException::class)
-    private fun writeJsonInteger(num: Long) {
+    private suspend fun writeJsonInteger(num: Long) {
         context.write()
         val str = num.toString()
         val escapeNum = context.escapeNum()
@@ -167,8 +164,7 @@ class JsonProtocol @JvmOverloads constructor(
 
     // Write out a double as a Json value. If it is NaN or infinity or if the
     // context dictates escaping, write out as Json string.
-    @Throws(IOException::class)
-    private fun writeJsonDouble(num: Double) {
+    private suspend fun writeJsonDouble(num: Double) {
         context.write()
         val str = num.toString()
         var special = false
@@ -190,34 +186,29 @@ class JsonProtocol @JvmOverloads constructor(
         }
     }
 
-    @Throws(IOException::class)
-    private fun writeJsonObjectStart() {
+    private suspend fun writeJsonObjectStart() {
         context.write()
         transport.write(LBRACE)
         pushContext(JsonPairContext())
     }
 
-    @Throws(IOException::class)
-    private fun writeJsonObjectEnd() {
+    private suspend fun writeJsonObjectEnd() {
         popContext()
         transport.write(RBRACE)
     }
 
-    @Throws(IOException::class)
-    private fun writeJsonArrayStart() {
+    private suspend fun writeJsonArrayStart() {
         context.write()
         transport.write(LBRACKET)
         pushContext(JsonListContext())
     }
 
-    @Throws(IOException::class)
-    private fun writeJsonArrayEnd() {
+    private suspend fun writeJsonArrayEnd() {
         popContext()
         transport.write(RBRACKET)
     }
 
-    @Throws(IOException::class)
-    override fun writeMessageBegin(name: String, typeId: Byte, seqId: Int) {
+    override suspend fun writeMessageBegin(name: String, typeId: Byte, seqId: Int) {
         resetContext() // THRIFT-3743
         writeJsonArrayStart()
         writeJsonInteger(VERSION)
@@ -226,23 +217,19 @@ class JsonProtocol @JvmOverloads constructor(
         writeJsonInteger(seqId.toLong())
     }
 
-    @Throws(IOException::class)
-    override fun writeMessageEnd() {
+    override suspend fun writeMessageEnd() {
         writeJsonArrayEnd()
     }
 
-    @Throws(IOException::class)
-    override fun writeStructBegin(structName: String) {
+    override suspend fun writeStructBegin(structName: String) {
         writeJsonObjectStart()
     }
 
-    @Throws(IOException::class)
-    override fun writeStructEnd() {
+    override suspend fun writeStructEnd() {
         writeJsonObjectEnd()
     }
 
-    @Throws(IOException::class)
-    override fun writeFieldBegin(fieldName: String, fieldId: Int, typeId: Byte) {
+    override suspend fun writeFieldBegin(fieldName: String, fieldId: Int, typeId: Byte) {
         if (fieldNamesAsString) {
             writeString(fieldName)
         } else {
@@ -252,14 +239,13 @@ class JsonProtocol @JvmOverloads constructor(
         writeJsonString(JsonTypes.ttypeToJson(typeId))
     }
 
-    @Throws(IOException::class)
-    override fun writeFieldEnd() {
+    override suspend fun writeFieldEnd() {
         writeJsonObjectEnd()
     }
 
-    override fun writeFieldStop() {}
-    @Throws(IOException::class)
-    override fun writeMapBegin(keyTypeId: Byte, valueTypeId: Byte, mapSize: Int) {
+    override suspend fun writeFieldStop() {}
+
+    override suspend fun writeMapBegin(keyTypeId: Byte, valueTypeId: Byte, mapSize: Int) {
         writeJsonArrayStart()
         writeJsonString(JsonTypes.ttypeToJson(keyTypeId))
         writeJsonString(JsonTypes.ttypeToJson(valueTypeId))
@@ -267,83 +253,69 @@ class JsonProtocol @JvmOverloads constructor(
         writeJsonObjectStart()
     }
 
-    @Throws(IOException::class)
-    override fun writeMapEnd() {
+    override suspend fun writeMapEnd() {
         writeJsonObjectEnd()
         writeJsonArrayEnd()
     }
 
-    @Throws(IOException::class)
-    override fun writeListBegin(elementTypeId: Byte, listSize: Int) {
+    override suspend fun writeListBegin(elementTypeId: Byte, listSize: Int) {
         writeJsonArrayStart()
         writeJsonString(JsonTypes.ttypeToJson(elementTypeId))
         writeJsonInteger(listSize.toLong())
     }
 
-    @Throws(IOException::class)
-    override fun writeListEnd() {
+    override suspend fun writeListEnd() {
         writeJsonArrayEnd()
     }
 
-    @Throws(IOException::class)
-    override fun writeSetBegin(elementTypeId: Byte, setSize: Int) {
+    override suspend fun writeSetBegin(elementTypeId: Byte, setSize: Int) {
         writeJsonArrayStart()
         writeJsonString(JsonTypes.ttypeToJson(elementTypeId))
         writeJsonInteger(setSize.toLong())
     }
 
-    @Throws(IOException::class)
-    override fun writeSetEnd() {
+    override suspend fun writeSetEnd() {
         writeJsonArrayEnd()
     }
 
-    @Throws(IOException::class)
-    override fun writeBool(b: Boolean) {
+    override suspend fun writeBool(b: Boolean) {
         writeJsonInteger(if (b) 1.toLong() else 0.toLong())
     }
 
-    @Throws(IOException::class)
-    override fun writeByte(b: Byte) {
+    override suspend fun writeByte(b: Byte) {
         writeJsonInteger(b.toLong())
     }
 
-    @Throws(IOException::class)
-    override fun writeI16(i16: Short) {
+    override suspend fun writeI16(i16: Short) {
         writeJsonInteger(i16.toLong())
     }
 
-    @Throws(IOException::class)
-    override fun writeI32(i32: Int) {
+    override suspend fun writeI32(i32: Int) {
         writeJsonInteger(i32.toLong())
     }
 
-    @Throws(IOException::class)
-    override fun writeI64(i64: Long) {
+    override suspend fun writeI64(i64: Long) {
         writeJsonInteger(i64)
     }
 
-    @Throws(IOException::class)
-    override fun writeDouble(dub: Double) {
+    override suspend fun writeDouble(dub: Double) {
         writeJsonDouble(dub)
     }
 
-    @Throws(IOException::class)
-    override fun writeString(str: String) {
+    override suspend fun writeString(str: String) {
         writeJsonString(str.encodeToByteArray())
     }
 
-    @Throws(IOException::class)
-    override fun writeBinary(buf: ByteString) {
+    override suspend fun writeBinary(buf: ByteString) {
         writeString(buf.base64())
     }
 
     /**
      * Reading methods.
      */
-    // Read in a Json string, unescaping as appropriate.. Skip reading from the
+    // Read in a Json string, unescaping as appropriate. Skip reading from the
     // context if skipContext is true.
-    @Throws(IOException::class)
-    private fun readJsonString(skipContext: Boolean): ByteString {
+    private suspend fun readJsonString(skipContext: Boolean): ByteString {
         val buffer = Buffer()
         val codeunits = ArrayList<Char>()
         if (!skipContext) {
@@ -419,8 +391,7 @@ class JsonProtocol @JvmOverloads constructor(
 
     // Read in a sequence of characters that are all valid in Json numbers. Does
     // not do a complete regex check to validate that this is actually a number.
-    @Throws(IOException::class)
-    private fun readJsonNumericChars(): String {
+    private suspend fun readJsonNumericChars(): String {
         val strbld = StringBuilder()
         while (true) {
             val ch = reader.peek()
@@ -433,8 +404,7 @@ class JsonProtocol @JvmOverloads constructor(
     }
 
     // Read in a Json number. If the context dictates, read in enclosing quotes.
-    @Throws(IOException::class)
-    private fun readJsonInteger(): Long {
+    private suspend fun readJsonInteger(): Long {
         context.read()
         if (context.escapeNum()) {
             readJsonSyntaxChar(QUOTE)
@@ -452,8 +422,7 @@ class JsonProtocol @JvmOverloads constructor(
 
     // Read in a Json double value. Throw if the value is not wrapped in quotes
     // when expected or if wrapped in quotes when not expected.
-    @Throws(IOException::class)
-    private fun readJsonDouble(): Double {
+    private suspend fun readJsonDouble(): Double {
         context.read()
         return if (reader.peek() == QUOTE[0]) {
             val str = readJsonString(true)
@@ -478,40 +447,34 @@ class JsonProtocol @JvmOverloads constructor(
     }
 
     // Read in a Json string containing base-64 encoded data and decode it.
-    @Throws(IOException::class)
-    private fun readJsonBase64(): ByteString {
+    private suspend fun readJsonBase64(): ByteString {
         val str = readJsonString(false)
         return str.utf8().decodeBase64()!!
     }
 
-    @Throws(IOException::class)
-    private fun readJsonObjectStart() {
+    private suspend fun readJsonObjectStart() {
         context.read()
         readJsonSyntaxChar(LBRACE)
         pushContext(JsonPairContext())
     }
 
-    @Throws(IOException::class)
-    private fun readJsonObjectEnd() {
+    private suspend fun readJsonObjectEnd() {
         readJsonSyntaxChar(RBRACE)
         popContext()
     }
 
-    @Throws(IOException::class)
-    private fun readJsonArrayStart() {
+    private suspend fun readJsonArrayStart() {
         context.read()
         readJsonSyntaxChar(LBRACKET)
         pushContext(JsonListContext())
     }
 
-    @Throws(IOException::class)
-    private fun readJsonArrayEnd() {
+    private suspend fun readJsonArrayEnd() {
         readJsonSyntaxChar(RBRACKET)
         popContext()
     }
 
-    @Throws(IOException::class)
-    override fun readMessageBegin(): MessageMetadata {
+    override suspend fun readMessageBegin(): MessageMetadata {
         resetContext() // THRIFT-3743
         readJsonArrayStart()
         if (readJsonInteger() != VERSION) {
@@ -523,24 +486,20 @@ class JsonProtocol @JvmOverloads constructor(
         return MessageMetadata(name, type, seqid)
     }
 
-    @Throws(IOException::class)
-    override fun readMessageEnd() {
+    override suspend fun readMessageEnd() {
         readJsonArrayEnd()
     }
 
-    @Throws(IOException::class)
-    override fun readStructBegin(): StructMetadata {
+    override suspend fun readStructBegin(): StructMetadata {
         readJsonObjectStart()
         return StructMetadata("")
     }
 
-    @Throws(IOException::class)
-    override fun readStructEnd() {
+    override suspend fun readStructEnd() {
         readJsonObjectEnd()
     }
 
-    @Throws(IOException::class)
-    override fun readFieldBegin(): FieldMetadata {
+    override suspend fun readFieldBegin(): FieldMetadata {
         val ch = reader.peek()
         val type: Byte
         var id: Short = 0
@@ -554,13 +513,11 @@ class JsonProtocol @JvmOverloads constructor(
         return FieldMetadata("", type, id)
     }
 
-    @Throws(IOException::class)
-    override fun readFieldEnd() {
+    override suspend fun readFieldEnd() {
         readJsonObjectEnd()
     }
 
-    @Throws(IOException::class)
-    override fun readMapBegin(): MapMetadata {
+    override suspend fun readMapBegin(): MapMetadata {
         readJsonArrayStart()
         val keyType = JsonTypes.jsonToTtype(readJsonString(false).toByteArray())
         val valueType = JsonTypes.jsonToTtype(readJsonString(false).toByteArray())
@@ -569,75 +526,62 @@ class JsonProtocol @JvmOverloads constructor(
         return MapMetadata(keyType, valueType, size)
     }
 
-    @Throws(IOException::class)
-    override fun readMapEnd() {
+    override suspend fun readMapEnd() {
         readJsonObjectEnd()
         readJsonArrayEnd()
     }
 
-    @Throws(IOException::class)
-    override fun readListBegin(): ListMetadata {
+    override suspend fun readListBegin(): ListMetadata {
         readJsonArrayStart()
         val elemType = JsonTypes.jsonToTtype(readJsonString(false).toByteArray())
         val size = readJsonInteger().toInt()
         return ListMetadata(elemType, size)
     }
 
-    @Throws(IOException::class)
-    override fun readListEnd() {
+    override suspend fun readListEnd() {
         readJsonArrayEnd()
     }
 
-    @Throws(IOException::class)
-    override fun readSetBegin(): SetMetadata {
+    override suspend fun readSetBegin(): SetMetadata {
         readJsonArrayStart()
         val elemType = JsonTypes.jsonToTtype(readJsonString(false).toByteArray())
         val size = readJsonInteger().toInt()
         return SetMetadata(elemType, size)
     }
 
-    @Throws(IOException::class)
-    override fun readSetEnd() {
+    override suspend fun readSetEnd() {
         readJsonArrayEnd()
     }
 
-    @Throws(IOException::class)
-    override fun readBool(): Boolean {
+    override suspend fun readBool(): Boolean {
         return readJsonInteger() != 0L
     }
 
-    @Throws(IOException::class)
-    override fun readByte(): Byte {
+    override suspend fun readByte(): Byte {
         return readJsonInteger().toByte()
     }
 
-    @Throws(IOException::class)
-    override fun readI16(): Short {
+    override suspend fun readI16(): Short {
         return readJsonInteger().toShort()
     }
 
-    @Throws(IOException::class)
-    override fun readI32(): Int {
+    override suspend fun readI32(): Int {
         return readJsonInteger().toInt()
     }
 
-    @Throws(IOException::class)
-    override fun readI64(): Long {
+    override suspend fun readI64(): Long {
         return readJsonInteger()
     }
 
-    @Throws(IOException::class)
-    override fun readDouble(): Double {
+    override suspend fun readDouble(): Double {
         return readJsonDouble()
     }
 
-    @Throws(IOException::class)
-    override fun readString(): String {
+    override suspend fun readString(): String {
         return readJsonString(false).utf8()
     }
 
-    @Throws(IOException::class)
-    override fun readBinary(): ByteString {
+    override suspend fun readBinary(): ByteString {
         return readJsonBase64()
     }
 
@@ -648,8 +592,7 @@ class JsonProtocol @JvmOverloads constructor(
 
         // Return and consume the next byte to be read, either taking it from the
         // data buffer if present or getting it from the transport otherwise.
-        @Throws(IOException::class)
-        fun read(): Byte {
+        suspend fun read(): Byte {
             if (hasData) {
                 hasData = false
             } else {
@@ -660,8 +603,7 @@ class JsonProtocol @JvmOverloads constructor(
 
         // Return the next byte to be read without consuming, filling the data
         // buffer if it has not been filled already.
-        @Throws(IOException::class)
-        fun peek(): Byte {
+        suspend fun peek(): Byte {
             if (!hasData) {
                 transport.read(data, 0, 1)
             }
@@ -736,12 +678,10 @@ class JsonProtocol @JvmOverloads constructor(
     // additional Json syntax characters
     // This base context does nothing.
     private open class JsonBaseContext {
-        @Throws(IOException::class)
-        open fun write() {
+        open suspend fun write() {
         }
 
-        @Throws(IOException::class)
-        open fun read() {
+        open suspend fun read() {
         }
 
         open fun escapeNum(): Boolean {
@@ -753,8 +693,7 @@ class JsonProtocol @JvmOverloads constructor(
     // for the first one
     private inner class JsonListContext : JsonBaseContext() {
         private var first = true
-        @Throws(IOException::class)
-        override fun write() {
+        override suspend fun write() {
             if (first) {
                 first = false
             } else {
@@ -762,8 +701,7 @@ class JsonProtocol @JvmOverloads constructor(
             }
         }
 
-        @Throws(IOException::class)
-        override fun read() {
+        override suspend fun read() {
             if (first) {
                 first = false
             } else {
@@ -779,8 +717,8 @@ class JsonProtocol @JvmOverloads constructor(
     private inner class JsonPairContext : JsonBaseContext() {
         private var first = true
         private var colon = true
-        @Throws(IOException::class)
-        override fun write() {
+
+        override suspend fun write() {
             if (first) {
                 first = false
                 colon = true
@@ -790,8 +728,7 @@ class JsonProtocol @JvmOverloads constructor(
             }
         }
 
-        @Throws(IOException::class)
-        override fun read() {
+        override suspend fun read() {
             if (first) {
                 first = false
                 colon = true

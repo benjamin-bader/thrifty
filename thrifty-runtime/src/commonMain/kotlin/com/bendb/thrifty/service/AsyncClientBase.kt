@@ -21,7 +21,17 @@
  */
 package com.bendb.thrifty.service
 
+import com.bendb.thrifty.Struct
 import com.bendb.thrifty.protocol.Protocol
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import okio.Closeable
 
 /**
@@ -35,47 +45,61 @@ import okio.Closeable
  * objects appropriately.
  *
  * @param protocol the [Protocol] used to encode/decode requests and responses.
- * @param listener a callback object to receive client-level events.
+ * @param dispatcher an optional [CoroutineDispatcher] to use for executing requests.
  */
-expect open class AsyncClientBase protected constructor(
+abstract class AsyncClientBase protected constructor(
     protocol: Protocol,
-    listener: Listener
-) : ClientBase, Closeable {
-    /**
-     * Exposes important events in the client's lifecycle.
-     */
-    interface Listener {
-        /**
-         * Invoked when the client connection has been closed.
-         *
-         * After invocation, the client is no longer usable.  All subsequent
-         * method call attempts will result in an immediate exception on the
-         * calling thread.
-         */
-        fun onTransportClosed()
+    dispatcher: CoroutineDispatcher = Dispatchers.IO
+) : ClientBase(protocol), Closeable {
+    private val dispatcher = dispatcher.limitedParallelism(parallelism = 1)
+    private val lock = Mutex()
 
-        /**
-         * Invoked when a client-level error has occurred.
-         *
-         * This generally indicates a connectivity or protocol error,
-         * and is distinct from errors returned as part of normal service
-         * operation.
-         *
-         * The client is guaranteed to have been closed and shut down
-         * by the time this method is invoked.
-         *
-         * @param error the throwable instance representing the error.
-         */
-        fun onError(error: Throwable)
+    private val mutableState = MutableStateFlow<ClientState>(ClientState.Running)
+    val state: StateFlow<ClientState>
+        get() = mutableState
+
+    protected suspend fun <T> executeMethodCall(methodCall: MethodCall<T>): T {
+        check(running.value) { "Cannot write to a closed service client" }
+
+        return supervisorScope {
+            try {
+                withContext(dispatcher) {
+                    lock.withLock { invokeRequest(methodCall) }
+                }
+            } catch (e: ServerException) {
+                throw e.thriftException
+            } catch (e: Throwable) {
+                if (e is Struct) {
+                    // In this case, the server has returned an exception that is a Thrift struct
+                    // and which therefore is part of the service-method contract.
+                    throw e
+                }
+
+                // Any other error results in the client being closed
+                closeWithException(e)
+                throw e
+            }
+        }
     }
 
-    /**
-     * Enqueues a method call for asynchronous execution.
-     *
-     * WARNING:
-     * This method is *NOT* part of the public API.  It is an implementation
-     * detail, for use by generated code only.  As multi-platform code evolves,
-     * expect this to change and/or be removed entirely!
-     */
-    protected fun enqueue(methodCall: MethodCall<*>)
+    override fun close() {
+        closeWithException(null)
+    }
+
+    private fun closeWithException(cause: Throwable?) {
+        if (!running.compareAndSet(true, false)) {
+            return
+        }
+
+        val newState = if (cause == null) ClientState.Closed else ClientState.Failed(cause)
+        mutableState.value = newState
+
+        closeProtocol()
+    }
+}
+
+sealed interface ClientState {
+    data object Running : ClientState
+    data object Closed : ClientState
+    data class Failed(val error: Throwable) : ClientState
 }

@@ -27,137 +27,95 @@ import okio.IOException
 
 interface Protocol : Closeable {
 
-    @Throws(IOException::class)
-    fun writeMessageBegin(name: String, typeId: Byte, seqId: Int)
+    suspend fun writeMessageBegin(name: String, typeId: Byte, seqId: Int)
 
-    @Throws(IOException::class)
-    fun writeMessageEnd()
+    suspend fun writeMessageEnd()
 
-    @Throws(IOException::class)
-    fun writeStructBegin(structName: String)
+    suspend fun writeStructBegin(structName: String)
 
-    @Throws(IOException::class)
-    fun writeStructEnd()
+    suspend fun writeStructEnd()
 
-    @Throws(IOException::class)
-    fun writeFieldBegin(fieldName: String, fieldId: Int, typeId: Byte)
+    suspend fun writeFieldBegin(fieldName: String, fieldId: Int, typeId: Byte)
 
-    @Throws(IOException::class)
-    fun writeFieldEnd()
+    suspend fun writeFieldEnd()
 
-    @Throws(IOException::class)
-    fun writeFieldStop()
+    suspend fun writeFieldStop()
 
-    @Throws(IOException::class)
-    fun writeMapBegin(keyTypeId: Byte, valueTypeId: Byte, mapSize: Int)
+    suspend fun writeMapBegin(keyTypeId: Byte, valueTypeId: Byte, mapSize: Int)
 
-    @Throws(IOException::class)
-    fun writeMapEnd()
+    suspend fun writeMapEnd()
 
-    @Throws(IOException::class)
-    fun writeListBegin(elementTypeId: Byte, listSize: Int)
+    suspend fun writeListBegin(elementTypeId: Byte, listSize: Int)
 
-    @Throws(IOException::class)
-    fun writeListEnd()
+    suspend fun writeListEnd()
 
-    @Throws(IOException::class)
-    fun writeSetBegin(elementTypeId: Byte, setSize: Int)
+    suspend fun writeSetBegin(elementTypeId: Byte, setSize: Int)
 
-    @Throws(IOException::class)
-    fun writeSetEnd()
+    suspend fun writeSetEnd()
 
-    @Throws(IOException::class)
-    fun writeBool(b: Boolean)
+    suspend fun writeBool(b: Boolean)
 
-    @Throws(IOException::class)
-    fun writeByte(b: Byte)
+    suspend fun writeByte(b: Byte)
 
-    @Throws(IOException::class)
-    fun writeI16(i16: Short)
+    suspend fun writeI16(i16: Short)
 
-    @Throws(IOException::class)
-    fun writeI32(i32: Int)
+    suspend fun writeI32(i32: Int)
 
-    @Throws(IOException::class)
-    fun writeI64(i64: Long)
+    suspend fun writeI64(i64: Long)
 
-    @Throws(IOException::class)
-    fun writeDouble(dub: Double)
+    suspend fun writeDouble(dub: Double)
 
-    @Throws(IOException::class)
-    fun writeString(str: String)
+    suspend fun writeString(str: String)
 
-    @Throws(IOException::class)
-    fun writeBinary(buf: ByteString)
+    suspend fun writeBinary(buf: ByteString)
 
     ////////
 
-    @Throws(IOException::class)
-    fun readMessageBegin(): MessageMetadata
+    suspend fun readMessageBegin(): MessageMetadata
 
-    @Throws(IOException::class)
-    fun readMessageEnd()
+    suspend fun readMessageEnd()
 
-    @Throws(IOException::class)
-    fun readStructBegin(): StructMetadata
+    suspend fun readStructBegin(): StructMetadata
 
-    @Throws(IOException::class)
-    fun readStructEnd()
+    suspend fun readStructEnd()
 
-    @Throws(IOException::class)
-    fun readFieldBegin(): FieldMetadata
+    suspend fun readFieldBegin(): FieldMetadata
 
-    @Throws(IOException::class)
-    fun readFieldEnd()
+    suspend fun readFieldEnd()
 
-    @Throws(IOException::class)
-    fun readMapBegin(): MapMetadata
+    suspend fun readMapBegin(): MapMetadata
 
-    @Throws(IOException::class)
-    fun readMapEnd()
+    suspend fun readMapEnd()
 
-    @Throws(IOException::class)
-    fun readListBegin(): ListMetadata
+    suspend fun readListBegin(): ListMetadata
 
-    @Throws(IOException::class)
-    fun readListEnd()
+    suspend fun readListEnd()
 
-    @Throws(IOException::class)
-    fun readSetBegin(): SetMetadata
+    suspend fun readSetBegin(): SetMetadata
 
-    @Throws(IOException::class)
-    fun readSetEnd()
+    suspend fun readSetEnd()
 
-    @Throws(IOException::class)
-    fun readBool(): Boolean
+    suspend fun readBool(): Boolean
 
-    @Throws(IOException::class)
-    fun readByte(): Byte
+    suspend fun readByte(): Byte
 
-    @Throws(IOException::class)
-    fun readI16(): Short
+    suspend fun readI16(): Short
 
-    @Throws(IOException::class)
-    fun readI32(): Int
+    suspend fun readI32(): Int
 
-    @Throws(IOException::class)
-    fun readI64(): Long
+    suspend fun readI64(): Long
 
-    @Throws(IOException::class)
-    fun readDouble(): Double
+    suspend fun readDouble(): Double
 
-    @Throws(IOException::class)
-    fun readString(): String
+    suspend fun readString(): String
 
-    @Throws(IOException::class)
-    fun readBinary(): ByteString
+    suspend fun readBinary(): ByteString
 
     //////////////
 
-    @Throws(IOException::class)
-    fun flush()
+    suspend fun flush()
 
-    fun reset() {
+    suspend fun reset() {
         // to be implemented by implementations as needed
     }
 }

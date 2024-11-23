@@ -21,7 +21,7 @@
  */
 package com.bendb.thrifty.compiler
 
-import com.bendb.thrifty.compiler.spi.KotlinTypeProcessor
+import com.bendb.thrifty.compiler.spi.TypeProcessor
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
@@ -31,7 +31,7 @@ import java.io.Serializable
  * An example [KotlinTypeProcessor] that implements [Serializable]
  * for all generated types.
  */
-class SerializableKotlinProcessor : KotlinTypeProcessor {
+class SerializableTypeProcessor : TypeProcessor {
     override fun process(spec: TypeSpec): TypeSpec? {
         return spec.toBuilder().run {
             addSuperinterface(Serializable::class)

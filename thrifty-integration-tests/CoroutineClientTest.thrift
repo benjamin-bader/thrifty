@@ -338,3 +338,23 @@ const Bonk A_BONK = {
   "message": "foobar",
   "type": 100,
 }
+
+struct HasRedaction {
+  1: required string one;
+  2: required string two (redacted = "true");
+  3: required string three (obfuscated);
+}
+
+struct HasCommentBasedRedaction {
+  /** @redacted */
+  1: required string foo;
+}
+
+struct ObfuscatedCollections {
+  1: required list<i32> numz = [1, 2, 3] (obfuscated)
+  2: required map<string, string> stringz = {} (obfuscated)
+}
+
+struct HasObfuscation {
+  1: optional string ssn (obfuscated = "true")
+}

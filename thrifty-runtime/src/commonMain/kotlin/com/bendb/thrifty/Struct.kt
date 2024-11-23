@@ -34,6 +34,5 @@ interface Struct {
      * @param protocol the protocol to which to write the struct
      * @throws IOException if writing fails
      */
-    @Throws(IOException::class)
-    fun write(protocol: Protocol)
+    suspend fun write(protocol: Protocol)
 }

@@ -24,13 +24,10 @@ package com.bendb.thrifty.kgen
 import com.bendb.thrifty.schema.FieldNamingPolicy
 import com.bendb.thrifty.schema.Loader
 import com.bendb.thrifty.schema.Schema
-import com.bendb.thrifty.service.ServiceMethodCallback
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.KModifier
-import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.TypeSpec
-import com.squareup.kotlinpoet.asTypeName
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.ints.shouldBeLessThan
 import io.kotest.matchers.should
@@ -242,21 +239,6 @@ class KotlinCodeGeneratorTest {
         xception.propertySpecs.single().name shouldBe "message_"
     }
 
-
-    @Test
-    fun `union with error as field name should compile with builder`() {
-        val thrift = """
-            namespace kt com.test
-
-            union Fail { 1: string error }
-        """.trimIndent()
-
-        val specs = generate(thrift) {
-            withDataClassBuilders()
-        }
-        specs.shouldCompile()
-    }
-
     @Test
     fun services() {
         val thrift = """
@@ -292,7 +274,6 @@ class KotlinCodeGeneratorTest {
 
         val specs = generate(thrift) {
             generateServer()
-            withDataClassBuilders()
         }
         specs.shouldCompile()
     }
@@ -325,13 +306,11 @@ class KotlinCodeGeneratorTest {
         """.trimIndent()
 
         val file = generate(thrift).single()
+        println(file)
         file.shouldCompile()
         val svc = file.members.first { it is TypeSpec && it.name == "Foo" } as TypeSpec
         val method = svc.funSpecs.single()
         method.name shouldBe "doIt"
-        method.parameters.single().type shouldBe ServiceMethodCallback::class
-                .asTypeName()
-                .parameterizedBy(ClassName("test.typedefs", "TheNumber"))
     }
 
     @Test
@@ -425,7 +404,7 @@ class KotlinCodeGeneratorTest {
             |}
         """.trimMargin()
 
-        val file = generate(thrift) { coroutineServiceClients() }
+        val file = generate(thrift)
         file.shouldCompile()
 
         file.single().toString() should contain("""
@@ -435,18 +414,11 @@ class KotlinCodeGeneratorTest {
             |
             |public class SvcClient(
             |  protocol: Protocol,
-            |  listener: AsyncClientBase.Listener,
-            |) : AsyncClientBase(protocol, listener), Svc {
-            |  public override suspend fun doSomething(foo: Int): Int = suspendCoroutine { cont ->
-            |    this.enqueue(DoSomethingCall(foo, object : ServiceMethodCallback<Int> {
-            |      public override fun onSuccess(result: Int): Unit {
-            |        cont.resumeWith(Result.success(result))
-            |      }
-            |
-            |      public override fun onError(error: Throwable): Unit {
-            |        cont.resumeWith(Result.failure(error))
-            |      }
-            |    }))
+            |  dispatcher: CoroutineDispatcher = Dispatchers.IO,
+            |) : AsyncClientBase(protocol, dispatcher), Svc {
+            |  public override suspend fun doSomething(foo: Int): Int {
+            |    val call = DoSomethingCall(foo)
+            |    return executeMethodCall(call)
             |  }
             |
         """.trimMargin())
@@ -538,7 +510,7 @@ class KotlinCodeGeneratorTest {
             |}
         """.trimMargin()
 
-        val file = generate(thrift) { coroutineServiceClients() }
+        val file = generate(thrift)
         file.shouldCompile()
 
         file.single().toString() should contain("""
@@ -559,7 +531,7 @@ class KotlinCodeGeneratorTest {
             |}
         """.trimMargin()
 
-        val file = generate(thrift) { coroutineServiceClients() }
+        val file = generate(thrift)
         file.shouldCompile()
 
         file.single().toString() should contain("""
@@ -592,71 +564,6 @@ class KotlinCodeGeneratorTest {
     }
 
     @Test
-    fun `union has builder`() {
-        val thrift = """
-            |namespace kt test.coro
-            |
-            |union Union {
-            |  1: i32 Foo;
-            |  2: i64 Bar;
-            |  3: string Baz;
-            |  4: i32 NotFoo;
-            |}
-        """.trimMargin()
-
-        val file = generate(thrift) { withDataClassBuilders() }
-        file.shouldCompile()
-
-        file.single().toString() should contain("""
-            |  public class Builder : StructBuilder<Union> {
-            |    private var value_: Union? = null
-            |
-            |    public constructor()
-            |
-            |    public constructor(source: Union) : this() {
-            |      this.value_ = source
-            |    }
-            |
-            |    public override fun build(): Union = value_ ?:
-            |        error("Invalid union; at least one value is required")
-            |
-            |    public override fun reset(): Unit {
-            |      value_ = null
-            |    }
-            |
-            |    public fun Foo(`value`: Int) = apply { this.value_ = Union.Foo(value) }
-            |
-            |    public fun Bar(`value`: Long) = apply { this.value_ = Union.Bar(value) }
-            |
-            |    public fun Baz(`value`: String) = apply { this.value_ = Union.Baz(value) }
-            |
-            |    public fun NotFoo(`value`: Int) = apply { this.value_ = Union.NotFoo(value) }
-            |  }
-        """.trimMargin())
-    }
-
-    @Test
-    fun `union wont generate builder when disabled`() {
-        val thrift = """
-            |namespace kt test.coro
-            |
-            |union Union {
-            |  1: i32 Foo;
-            |  2: i64 Bar;
-            |  3: string Baz;
-            |  4: i32 NotFoo;
-            |}
-        """.trimMargin()
-
-        val file = generate(thrift)
-        file.shouldCompile()
-
-        file.single().toString() shouldNot contain("""
-            |    class Builder
-        """.trimMargin())
-    }
-
-    @Test
     fun `union wont generate struct when disabled`() {
         val thrift = """
             |namespace kt test.coro
@@ -682,75 +589,6 @@ class KotlinCodeGeneratorTest {
     }
 
     @Test
-    fun `union generate read function`() {
-        val thrift = """
-            |namespace kt test.coro
-            |
-            |union Union {
-            |  1: i32 Foo;
-            |  2: i64 Bar;
-            |  3: string Baz;
-            |  4: i32 NotFoo;
-            |}
-        """.trimMargin()
-
-        val file = generate(thrift) { withDataClassBuilders() }
-        file.shouldCompile()
-
-        file.single().toString() should contain("""
-            |    public override fun read(protocol: Protocol) = read(protocol, Builder())
-            |
-            |    public override fun read(protocol: Protocol, builder: Builder): Union {
-            |      protocol.readStructBegin()
-            |      while (true) {
-            |        val fieldMeta = protocol.readFieldBegin()
-            |        if (fieldMeta.typeId == TType.STOP) {
-            |          break
-            |        }
-            |        when (fieldMeta.fieldId.toInt()) {
-            |          1 -> {
-            |            if (fieldMeta.typeId == TType.I32) {
-            |              val Foo = protocol.readI32()
-            |              builder.Foo(Foo)
-            |            } else {
-            |              ProtocolUtil.skip(protocol, fieldMeta.typeId)
-            |            }
-            |          }
-            |          2 -> {
-            |            if (fieldMeta.typeId == TType.I64) {
-            |              val Bar = protocol.readI64()
-            |              builder.Bar(Bar)
-            |            } else {
-            |              ProtocolUtil.skip(protocol, fieldMeta.typeId)
-            |            }
-            |          }
-            |          3 -> {
-            |            if (fieldMeta.typeId == TType.STRING) {
-            |              val Baz = protocol.readString()
-            |              builder.Baz(Baz)
-            |            } else {
-            |              ProtocolUtil.skip(protocol, fieldMeta.typeId)
-            |            }
-            |          }
-            |          4 -> {
-            |            if (fieldMeta.typeId == TType.I32) {
-            |              val NotFoo = protocol.readI32()
-            |              builder.NotFoo(NotFoo)
-            |            } else {
-            |              ProtocolUtil.skip(protocol, fieldMeta.typeId)
-            |            }
-            |          }
-            |          else -> ProtocolUtil.skip(protocol, fieldMeta.typeId)
-            |        }
-            |        protocol.readFieldEnd()
-            |      }
-            |      protocol.readStructEnd()
-            |      return builder.build()
-            |    }
-        """.trimMargin())
-    }
-
-    @Test
     fun `union generate read function without builder`() {
         val thrift = """
             |namespace kt test.coro
@@ -767,7 +605,7 @@ class KotlinCodeGeneratorTest {
         file.shouldCompile()
 
         file.single().toString() should contain("""
-            |    public override fun read(protocol: Protocol): Union {
+            |    public override suspend fun read(protocol: Protocol): Union {
             |      protocol.readStructBegin()
             |      var result : Union? = null
             |      while (true) {
@@ -819,27 +657,6 @@ class KotlinCodeGeneratorTest {
     }
 
     @Test
-    fun `union generate Adapter with builder`() {
-        val thrift = """
-            |namespace kt test.coro
-            |
-            |union Union {
-            |  1: i32 Foo;
-            |  2: i64 Bar;
-            |  3: string Baz;
-            |  4: i32 NotFoo;
-            |}
-        """.trimMargin()
-
-        val file = generate(thrift) { withDataClassBuilders() }
-        file.shouldCompile()
-
-        file.single().toString() should contain("""
-            |  private class UnionAdapter : Adapter<Union, Builder> {
-        """.trimMargin())
-    }
-
-    @Test
     fun `union generate Adapter`() {
         val thrift = """
             |namespace kt test.coro
@@ -869,7 +686,7 @@ class KotlinCodeGeneratorTest {
             |}
         """.trimMargin()
 
-        val file = generate(thrift) { coroutineServiceClients() }
+        val file = generate(thrift)
         file.shouldCompile()
 
         file.single().toString() should contain("""
@@ -892,12 +709,12 @@ class KotlinCodeGeneratorTest {
             |}
         """.trimMargin()
 
-        val file = generate(thrift) { withDataClassBuilders() }
+        val file = generate(thrift)
         file.shouldCompile()
 
         file.single().toString() should contain("""
             |public sealed class UnionStruct : Struct {
-            |  public override fun write(protocol: Protocol): Unit {
+            |  public override suspend fun write(protocol: Protocol): Unit {
             |    ADAPTER.write(protocol, this)
             |  }
             |
@@ -906,8 +723,6 @@ class KotlinCodeGeneratorTest {
             |  ) : UnionStruct() {
             |    public override fun toString(): String = "UnionStruct(Struct=${'$'}value)"
             |  }
-            |
-            |  public class Builder : StructBuilder<UnionStruct> {
         """.trimMargin())
     }
 
@@ -934,25 +749,6 @@ class KotlinCodeGeneratorTest {
     }
 
     @Test
-    fun `builder has correct syntax`() {
-        val thrift = """
-            |namespace kt test.builder
-            |
-            |struct Bonk {
-            |  1: string message;
-            |  2: i32 type;
-            |}
-        """.trimMargin()
-
-        val file = generate(thrift) { withDataClassBuilders() }
-        file.shouldCompile()
-
-        file.single().toString() should contain("""
-            |    public override fun build(): Bonk = Bonk(message = this.message, type = this.type)
-        """.trimMargin())
-    }
-
-    @Test
     fun `enum fail on unknown value`() {
         val thrift = """
             |namespace kt test.struct
@@ -972,13 +768,13 @@ class KotlinCodeGeneratorTest {
                     ThriftException(ThriftException.Kind.PROTOCOL_ERROR,
                     "Unexpected value for enum type TestEnum: ${'$'}it")
               }
-              builder.field_(field_)
+              _local_field = field_
             } else {
               ProtocolUtil.skip(protocol, fieldMeta.typeId)
             }
           }"""
 
-        val file = generate(thrift) { withDataClassBuilders() }
+        val file = generate(thrift)
         file.shouldCompile()
         file.single().toString() shouldContain expected
     }
@@ -1003,7 +799,7 @@ class KotlinCodeGeneratorTest {
                 TestEnum.findByValue(it)
               }
               field1?.let {
-                builder.field1(it)
+                _local_field1 = it
               }
             } else {
               ProtocolUtil.skip(protocol, fieldMeta.typeId)
@@ -1016,14 +812,13 @@ class KotlinCodeGeneratorTest {
                     ThriftException(ThriftException.Kind.PROTOCOL_ERROR,
                     "Unexpected value for enum type TestEnum: ${'$'}it")
               }
-              builder.field2(field2)
+              _local_field2 = field2
             } else {
               ProtocolUtil.skip(protocol, fieldMeta.typeId)
             }
           }"""
 
         val file = generate(thrift) {
-            withDataClassBuilders()
             failOnUnknownEnumValues(false)
         }
         file.shouldCompile()
@@ -1072,84 +867,6 @@ class KotlinCodeGeneratorTest {
         val file = generate(thrift) { failOnUnknownEnumValues(false) }
         file.shouldCompile()
         file.single().toString() shouldContain expected
-    }
-
-    @Test
-    fun `struct built with required constructor`() {
-        val thrift = """
-            |namespace kt test.struct
-            |
-            |struct TestStruct {
-            |  1: required i64 field1;
-            |  2: optional bool field2;
-            |}
-        """.trimMargin()
-
-        val expected = """
-    public constructor(field1: Long) {
-      this.field1 = field1
-      this.field2 = null
-    }"""
-
-        val file = generate(thrift) {
-            withDataClassBuilders()
-            builderRequiredConstructor()
-        }
-        file.shouldCompile()
-        file.single().toString() shouldContain expected
-    }
-
-    @Test
-    fun `default constructor marked deprecated when required constructor enabled`() {
-        val thrift = """
-            |namespace kt test.struct
-            |
-            |struct TestStruct {
-            |  1: required i64 field1;
-            |  2: optional bool field2;
-            |}
-        """.trimMargin()
-
-        val expected = """
-    @Deprecated(
-      message = "Empty constructor deprecated, use required constructor instead",
-      replaceWith = ReplaceWith("Builder(field1)"),
-    )"""
-
-        val file = generate(thrift) {
-            withDataClassBuilders()
-            builderRequiredConstructor()
-        }
-        file.shouldCompile()
-        file.single().toString() shouldContain expected
-    }
-
-    @Test
-    fun `omit required constructor when no required parameters supplied`() {
-        val thrift = """
-            |namespace kt test.struct
-            |
-            |struct TestStruct {
-            |  1: optional i64 field1;
-            |  2: optional bool field2;
-            |}
-        """.trimMargin()
-
-        val notExpected = "@Deprecated("
-
-        val expected = """
-    public constructor() {
-      this.field1 = null
-      this.field2 = null
-    }"""
-
-        val file = generate(thrift) {
-            withDataClassBuilders()
-            builderRequiredConstructor()
-        }
-        file.shouldCompile()
-        file.single().toString() shouldContain expected
-        file.single().toString() shouldNotContain notExpected
     }
 
     @Test
@@ -1339,67 +1056,6 @@ class KotlinCodeGeneratorTest {
     }
 
     @Test
-    fun `struct-valued constants with builders`() {
-        val thrift = """
-            |namespace kt test.struct
-            |
-            |struct Foo {
-            |  1: string text;
-            |  2: Bar bar;
-            |  3: Baz baz;
-            |  4: Quux quux;
-            |}
-            |
-            |struct Bar {
-            |  1: map<string, list<string>> keys;
-            |}
-            |
-            |enum Baz {
-            |  ONE,
-            |  TWO,
-            |  THREE
-            |}
-            |
-            |struct Quux {
-            |  1: string s;
-            |}
-            |
-            |const Quux THE_QUUX = {
-            |  "s": "s"
-            |}
-            |
-            |const Foo THE_FOO = {
-            |  "text": "some text",
-            |  "bar": {
-            |    "keys": {
-            |      "letters": ["a", "b", "c"],
-            |    }
-            |  },
-            |  "baz": Baz.ONE,
-            |  "quux": THE_QUUX
-            |}
-        """.trimMargin()
-
-        val expected = """
-            |public val THE_FOO: Foo = Foo.Builder().let {
-            |      it.text("some text")
-            |      it.bar(Bar.Builder().let {
-            |        it.keys(mapOf("letters" to listOf("a", "b", "c")))
-            |        it.build()
-            |      })
-            |      it.baz(test.struct.Baz.ONE)
-            |      it.quux(test.struct.THE_QUUX)
-            |      it.build()
-            |    }
-        """.trimMargin()
-
-        val file = generate(thrift) { withDataClassBuilders() }.single()
-
-        file.toString() shouldContain expected
-        file.shouldCompile()
-    }
-
-    @Test
     fun `Files should add generated comment`() {
         val thrift = """
             |namespace kt test.comment
@@ -1414,29 +1070,6 @@ class KotlinCodeGeneratorTest {
         val lines = file.toString().split("\n")
         lines[0] shouldBe "// Automatically generated by the Thrifty compiler; do not edit!"
         lines[1] shouldMatch """// Generated on: \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\S+)?Z""".toRegex()
-    }
-
-    @Test
-    fun `struct const with default field value using builders`() {
-        val thrift = """
-            |namespace kt test.struct_const.default_fields
-            |
-            |struct Foo {
-            |  1: required string text = "FOO";
-            |  2: required i32 number;
-            |}
-            |
-            |const Foo THE_FOO = {"number": 42}
-        """.trimMargin()
-
-        val file = generate(thrift) { withDataClassBuilders() }
-
-        file.toString() shouldContain """
-            |public val THE_FOO: Foo = Foo.Builder().let {
-            |      it.number(42)
-            |      it.build()
-            |    }
-        """.trimMargin()
     }
 
     @Test

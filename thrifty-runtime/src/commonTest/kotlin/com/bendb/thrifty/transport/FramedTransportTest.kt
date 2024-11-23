@@ -23,13 +23,14 @@ package com.bendb.thrifty.transport
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.test.runTest
 import okio.Buffer
 import okio.EOFException
 import kotlin.test.Test
 
 class FramedTransportTest {
     @Test
-    fun sinkWritesFrameLength() {
+    fun sinkWritesFrameLength() = runTest {
         val buffer = Buffer()
         val bufferTransport = BufferTransport(buffer)
         val transport = FramedTransport(bufferTransport)
@@ -41,7 +42,7 @@ class FramedTransportTest {
     }
 
     @Test
-    fun sourceReadsFrameLength() {
+    fun sourceReadsFrameLength() = runTest {
         val buffer = Buffer()
         buffer.writeInt(5)
         buffer.writeUtf8("abcdefghij") // buffer.size() is now 14
@@ -54,7 +55,7 @@ class FramedTransportTest {
     }
 
     @Test
-    fun flushedDataBeginsWithFrameLength() {
+    fun flushedDataBeginsWithFrameLength() = runTest {
         val target = Buffer()
         val source = Buffer()
         val transport = FramedTransport(BufferTransport(target))
@@ -68,7 +69,7 @@ class FramedTransportTest {
     }
 
     @Test
-    fun readsSpanningMultipleFrames() {
+    fun readsSpanningMultipleFrames() = runTest {
         val buffer = Buffer()
         buffer.writeInt(6)
         buffer.writeUtf8("abcdef")
@@ -83,7 +84,7 @@ class FramedTransportTest {
     }
 
     @Test
-    fun readHeaderWhenEOFReached() {
+    fun readHeaderWhenEOFReached() = runTest {
         val buffer = Buffer()
         val transport = FramedTransport(BufferTransport(buffer))
         val readBuffer = ByteArray(10)

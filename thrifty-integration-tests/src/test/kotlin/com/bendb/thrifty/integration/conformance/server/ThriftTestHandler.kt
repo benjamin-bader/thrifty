@@ -21,17 +21,17 @@
  */
 package com.bendb.thrifty.integration.conformance.server
 
-import com.bendb.thrifty.integration.kgen.HasUnion
-import com.bendb.thrifty.integration.kgen.Insanity
-import com.bendb.thrifty.integration.kgen.NonEmptyUnion
-import com.bendb.thrifty.integration.kgen.Numberz
-import com.bendb.thrifty.integration.kgen.server.ThriftTest
-import com.bendb.thrifty.integration.kgen.UnionWithDefault
-import com.bendb.thrifty.integration.kgen.UserId
-import com.bendb.thrifty.integration.kgen.Xception
-import com.bendb.thrifty.integration.kgen.Xception2
-import com.bendb.thrifty.integration.kgen.Xtruct
-import com.bendb.thrifty.integration.kgen.Xtruct2
+import com.bendb.thrifty.integration.kgen.coro.HasUnion
+import com.bendb.thrifty.integration.kgen.coro.Insanity
+import com.bendb.thrifty.integration.kgen.coro.NonEmptyUnion
+import com.bendb.thrifty.integration.kgen.coro.Numberz
+import com.bendb.thrifty.integration.kgen.coro.server.ThriftTest
+import com.bendb.thrifty.integration.kgen.coro.UnionWithDefault
+import com.bendb.thrifty.integration.kgen.coro.UserId
+import com.bendb.thrifty.integration.kgen.coro.Xception
+import com.bendb.thrifty.integration.kgen.coro.Xception2
+import com.bendb.thrifty.integration.kgen.coro.Xtruct
+import com.bendb.thrifty.integration.kgen.coro.Xtruct2
 import okio.ByteString
 import org.apache.thrift.TException
 

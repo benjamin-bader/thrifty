@@ -102,7 +102,6 @@ public abstract class ThriftyGradlePlugin implements Plugin<Project> {
 
         configuration.defaultDependencies(deps -> {
             deps.add(project.getDependencies().create("com.bendb.thrifty:thrifty-schema:" + thriftyVersion.get()));
-            deps.add(project.getDependencies().create("com.bendb.thrifty:thrifty-java-codegen:" + thriftyVersion.get()));
             deps.add(project.getDependencies().create("com.bendb.thrifty:thrifty-kotlin-codegen:" + thriftyVersion.get()));
             deps.add(project.getDependencies().create("com.bendb.thrifty:thrifty-compiler-plugins:" + thriftyVersion.get()));
         });

@@ -24,6 +24,7 @@ package com.bendb.thrifty.protocol
 import com.bendb.thrifty.TType
 import com.bendb.thrifty.transport.BufferTransport
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.test.runTest
 import okio.Buffer
 import okio.ByteString.Companion.encodeUtf8
 import okio.ByteString.Companion.toByteString
@@ -35,38 +36,38 @@ class SimpleJsonProtocolTest {
     private val protocol = SimpleJsonProtocol(transport)
 
     @Test
-    fun emptyJsonString() {
+    fun emptyJsonString() = runTest {
         protocol.writeString("")
         buffer.readUtf8() shouldBe "\"\""
     }
 
     @Test
-    fun escapesNamedControlChars() {
+    fun escapesNamedControlChars() = runTest {
         protocol.writeString("\b\u000C\r\n\t")
         buffer.readUtf8() shouldBe "\"\\b\\f\\r\\n\\t\""
     }
 
     @Test
-    fun escapesQuotes() {
+    fun escapesQuotes() = runTest {
         protocol.writeString("\"")
         buffer.readUtf8() shouldBe "\"\\\"\"" // or, in other words, "\""
     }
 
     @Test
-    fun normalStringIsQuoted() {
+    fun normalStringIsQuoted() = runTest {
         protocol.writeString("y u no quote me?")
         buffer.readUtf8() shouldBe "\"y u no quote me?\""
     }
 
     @Test
-    fun emptyList() {
+    fun emptyList() = runTest {
         protocol.writeListBegin(TType.STRING, 0)
         protocol.writeListEnd()
         buffer.readUtf8() shouldBe "[]"
     }
 
     @Test
-    fun listWithOneElement() {
+    fun listWithOneElement() = runTest {
         protocol.writeListBegin(TType.STRING, 0)
         protocol.writeString("foo")
         protocol.writeListEnd()
@@ -74,7 +75,7 @@ class SimpleJsonProtocolTest {
     }
 
     @Test
-    fun listWithTwoElements() {
+    fun listWithTwoElements() = runTest {
         protocol.writeListBegin(TType.STRING, 0)
         protocol.writeString("foo")
         protocol.writeString("bar")
@@ -83,14 +84,14 @@ class SimpleJsonProtocolTest {
     }
 
     @Test
-    fun emptyMap() {
+    fun emptyMap() = runTest {
         protocol.writeMapBegin(TType.STRING, TType.I32, 0)
         protocol.writeMapEnd()
         buffer.readUtf8() shouldBe "{}"
     }
 
     @Test
-    fun mapWithSingleElement() {
+    fun mapWithSingleElement() = runTest {
         protocol.writeMapBegin(TType.STRING, TType.I32, 0)
         protocol.writeString("key1")
         protocol.writeI32(1)
@@ -99,7 +100,7 @@ class SimpleJsonProtocolTest {
     }
 
     @Test
-    fun mapWithTwoElements() {
+    fun mapWithTwoElements() = runTest {
         protocol.writeMapBegin(TType.STRING, TType.I32, 0)
         protocol.writeString("key1")
         protocol.writeI32(1)
@@ -110,7 +111,7 @@ class SimpleJsonProtocolTest {
     }
 
     @Test
-    fun listOfMaps() {
+    fun listOfMaps() = runTest {
         protocol.writeListBegin(TType.MAP, 2)
         protocol.writeMapBegin(TType.STRING, TType.I32, 1)
         protocol.writeString("1")
@@ -125,7 +126,7 @@ class SimpleJsonProtocolTest {
     }
 
     @Test
-    fun structs() {
+    fun structs() = runTest {
         val xtruct = Xtruct.Builder()
                 .byte_thing(1.toByte())
                 .double_thing(2.0)
@@ -144,21 +145,21 @@ class SimpleJsonProtocolTest {
     }
 
     @Test
-    fun hexBinaryOutputMode() {
+    fun hexBinaryOutputMode() = runTest {
         protocol.withBinaryOutputMode(SimpleJsonProtocol.BinaryOutputMode.HEX)
                 .writeBinary(byteArrayOf(0, 127, -1).toByteString())
         buffer.readUtf8() shouldBe "\"007fff\""
     }
 
     @Test
-    fun b64BinaryOutputMode() {
+    fun b64BinaryOutputMode() = runTest {
         protocol.withBinaryOutputMode(SimpleJsonProtocol.BinaryOutputMode.BASE_64)
                 .writeBinary("foobar".encodeUtf8())
         buffer.readUtf8() shouldBe "\"Zm9vYmFy\""
     }
 
     @Test
-    fun nonAsciiCharacters() {
+    fun nonAsciiCharacters() = runTest {
         protocol.writeString("测试")
         buffer.readUtf8() shouldBe "\"测试\""
     }

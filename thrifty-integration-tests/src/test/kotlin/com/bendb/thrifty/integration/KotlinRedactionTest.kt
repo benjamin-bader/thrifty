@@ -21,10 +21,10 @@
  */
 package com.bendb.thrifty.integration
 
-import com.bendb.thrifty.integration.gen.HasCommentBasedRedaction
-import com.bendb.thrifty.integration.gen.HasObfuscation
-import com.bendb.thrifty.integration.gen.HasRedaction
-import com.bendb.thrifty.integration.gen.ObfuscatedCollections
+import com.bendb.thrifty.integration.kgen.coro.HasCommentBasedRedaction
+import com.bendb.thrifty.integration.kgen.coro.HasObfuscation
+import com.bendb.thrifty.integration.kgen.coro.HasRedaction
+import com.bendb.thrifty.integration.kgen.coro.ObfuscatedCollections
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
@@ -34,12 +34,13 @@ import java.util.Arrays
 import java.util.Collections
 
 class KotlinRedactionTest {
-    @Test fun redaction() {
-        val hr = HasRedaction.Builder()
-                .one("value-one")
-                .two("should-not-appear")
-                .three("value-three")  // expe
-                .build()
+    @Test
+    fun redaction() {
+        val hr = HasRedaction(
+            one = "value-one",
+            two = "should-not-appear",
+            three = "value-three"
+        )
 
         "$hr" should contain("one=value-one")
         "$hr" shouldNot contain("should-not-appear")
@@ -48,11 +49,11 @@ class KotlinRedactionTest {
 
     @Test
     fun obfuscation() {
-        val hr = HasRedaction.Builder()
-                .one("value-one")
-                .two("value-two")
-                .three("value-three")
-                .build()
+        val hr = HasRedaction(
+            one = "value-one",
+            two = "value-two",
+            three = "value-three"
+        )
 
         "$hr" should contain("three=6A39B242")
         hr.three shouldBe "value-three"
@@ -60,37 +61,31 @@ class KotlinRedactionTest {
 
     @Test
     fun commentBasedRedaction() {
-        val hcbr = HasCommentBasedRedaction.Builder()
-                .foo("bar")
-                .build()
+        val hcbr = HasCommentBasedRedaction(foo = "bar")
 
-        "$hcbr" shouldBe "HasCommentBasedRedaction{foo=<REDACTED>}"
+        "$hcbr" shouldBe "HasCommentBasedRedaction(foo=<REDACTED>)"
     }
 
     @Test
     fun obfuscatedList() {
-        val oc = ObfuscatedCollections.Builder()
-                .numz(Arrays.asList(1, 2, 3))
-                .build()
+        val oc = ObfuscatedCollections(numz = listOf(1, 2, 3))
 
         "$oc" should contain("numz=list<i32>(size=3)")
     }
 
     @Test
     fun obfuscatedMap() {
-        val oc = ObfuscatedCollections.Builder()
-                .stringz(Collections.singletonMap("foo", "bar"))
-                .build()
+        val oc = ObfuscatedCollections(stringz = mapOf("foo" to "bar"))
 
         "$oc" should contain("stringz=map<string, string>(size=1)")
     }
 
     @Test
     fun obfuscatedString() {
-        var ho = HasObfuscation.Builder().build()
-        "$ho" shouldBe "HasObfuscation{ssn=null}"
+        var ho = HasObfuscation(ssn = null)
+        "$ho" shouldBe "HasObfuscation(ssn=null)"
 
-        ho = HasObfuscation.Builder().ssn("123-45-6789").build()
-        "$ho" shouldBe "HasObfuscation{ssn=1E1DB4B3}"
+        ho = HasObfuscation(ssn = "123-45-6789")
+        "$ho" shouldBe "HasObfuscation(ssn=1E1DB4B3)"
     }
 }

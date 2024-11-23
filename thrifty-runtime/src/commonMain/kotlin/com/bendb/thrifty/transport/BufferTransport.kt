@@ -28,13 +28,13 @@ class BufferTransport @JvmOverloads constructor(
         private val b: Buffer = Buffer()
 ) : Transport {
 
-    override fun read(buffer: ByteArray, offset: Int, count: Int) = b.read(buffer, offset, count)
+    override suspend fun read(buffer: ByteArray, offset: Int, count: Int) = b.read(buffer, offset, count)
 
-    override fun write(buffer: ByteArray, offset: Int, count: Int) {
+    override suspend fun write(buffer: ByteArray, offset: Int, count: Int) {
         b.write(buffer, offset, count)
     }
 
-    override fun flush() = b.flush()
+    override suspend fun flush() = b.flush()
 
     override fun close() = b.close()
 }

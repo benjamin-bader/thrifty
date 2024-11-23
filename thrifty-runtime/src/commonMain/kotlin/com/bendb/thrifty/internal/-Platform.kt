@@ -26,4 +26,3 @@ import okio.IOException
 
 expect class ProtocolException(message: String) : IOException
 
-expect val DefaultDispatcher: CoroutineDispatcher

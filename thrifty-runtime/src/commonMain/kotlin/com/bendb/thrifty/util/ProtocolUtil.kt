@@ -28,9 +28,7 @@ import okio.IOException
 import kotlin.jvm.JvmStatic
 
 object ProtocolUtil {
-    @JvmStatic
-    @Throws(IOException::class)
-    fun skip(protocol: Protocol, typeCode: Byte) {
+    suspend fun skip(protocol: Protocol, typeCode: Byte) {
         when (typeCode) {
             TType.BOOL -> protocol.readBool()
             TType.BYTE -> protocol.readByte()

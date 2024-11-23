@@ -33,6 +33,7 @@ dependencies {
     testImplementation project(':thrifty-test-server')
     testImplementation libs.guava
 
+    testImplementation libs.kotlinx.coroutinesTest
     testImplementation libs.bundles.kotlin
     testImplementation libs.bundles.testing
 
@@ -59,40 +60,6 @@ application {
     mainClass = 'com.bendb.thrifty.compiler.ThriftyCompiler'
 }
 
-def compileTestThrift = tasks.register("compileTestThrift", JavaExec) { t ->
-    t.inputs.file("$projectDir/ClientThriftTest.thrift")
-    t.outputs.dir("$projectDir/build/generated-src/thrifty-java/java")
-
-    t.outputs.cacheIf("This task is always cacheable based on its inputs") { true }
-
-    t.classpath shadowJar.archiveFile
-
-    args = [
-            "--out=$projectDir/build/generated-src/thrifty-java/java",
-            "--lang=java",
-            "$projectDir/ClientThriftTest.thrift"]
-}
-
-
-def kompileTestThrift = tasks.register("kompileTestThrift", JavaExec) { t ->
-    t.inputs.file("$projectDir/ClientThriftTest.thrift")
-    t.outputs.dir("$projectDir/build/generated-src/thrifty-kotlin/kotlin")
-
-    t.outputs.cacheIf("This task is always cacheable based on its inputs") { true }
-
-    t.classpath shadowJar.archiveFile
-
-    args = [
-            "--out=$projectDir/build/generated-src/thrifty-kotlin/kotlin",
-            "--kt-struct-builders",
-            "--map-type=java.util.LinkedHashMap",
-            "--set-type=java.util.LinkedHashSet",
-            "--list-type=java.util.ArrayList",
-            "--experimental-kt-generate-server",
-            "$projectDir/ClientThriftTest.thrift"
-    ]
-}
-
 def kompileCoroutineTestThrift = tasks.register("kompileCoroutineTestThrift", JavaExec) { t ->
     t.inputs.file("$projectDir/CoroutineClientTest.thrift")
     t.outputs.dir("$projectDir/build/generated-src/thrifty-kotlin-coro/kotlin")
@@ -105,20 +72,16 @@ def kompileCoroutineTestThrift = tasks.register("kompileCoroutineTestThrift", Ja
             "--out=$projectDir/build/generated-src/thrifty-kotlin-coro/kotlin",
             "--kt-file-per-type",
             "--kt-emit-jvmname",
-            "--service-type=coroutine",
+            "--experimental-kt-generate-server",
             "$projectDir/CoroutineClientTest.thrift"
     ]
 }
 
 def cleanTestCode = tasks.register("cleanTestCode", Delete) { t ->
-    t.delete compileTestThrift
-    t.delete kompileTestThrift
     t.delete kompileCoroutineTestThrift
 }
 
 compileTestKotlin {
-    dependsOn compileTestThrift
-    dependsOn kompileTestThrift
     dependsOn kompileCoroutineTestThrift
 
     kotlinOptions {
@@ -129,9 +92,4 @@ compileTestKotlin {
 
 clean {
     dependsOn cleanTestCode
-}
-
-compileTestJava {
-    dependsOn compileTestThrift
-    dependsOn kompileTestThrift
 }

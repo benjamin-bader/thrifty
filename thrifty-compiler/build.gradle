@@ -28,23 +28,11 @@ plugins {
 
 dependencies {
     implementation project(':thrifty-schema')
-    implementation project(':thrifty-java-codegen')
     implementation project(':thrifty-kotlin-codegen')
     implementation project(':thrifty-compiler-plugins')
 
     implementation libs.clikt
     implementation libs.bundles.kotlin
-}
-
-sourceSets {
-    main {
-        java {
-            srcDir 'src/main/java'
-
-            // Include the generated test classes in the regular build
-            srcDir 'build/generated-src/gen/java'
-        }
-    }
 }
 
 shadowJar {
@@ -57,21 +45,3 @@ shadowJar {
     }
 }
 
-def compileTestCase = tasks.register('compileTestCase', JavaExec) { t ->
-    t.classpath(shadowJar.archiveFile)
-    t.args = ["--name-style=java", "--out=$projectDir/build/generated-src/gen/java", "$projectDir/TestThrift.thrift"]
-
-    t.outputs.dir("$projectDir/build/generated-src/gen")
-}
-
-task deleteTestCase(type: Delete) {
-    delete compileTestCase
-}
-
-compileJava {
-    dependsOn deleteTestCase
-}
-
-compileKotlin {
-    dependsOn deleteTestCase
-}
