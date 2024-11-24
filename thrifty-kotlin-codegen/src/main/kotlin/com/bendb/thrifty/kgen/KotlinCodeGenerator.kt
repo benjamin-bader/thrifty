@@ -773,6 +773,7 @@ class KotlinCodeGenerator(
         }
 
         return FunSpec.builder("toString")
+                .returns(String::class)
                 .addModifiers(KModifier.OVERRIDE)
                 .addCode(block)
                 .build()
