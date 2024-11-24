@@ -25,6 +25,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.VersionCatalogsExtension
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -71,9 +72,9 @@ class ThriftyKotlinPlugin : Plugin<Project> {
     private fun configureKotlinTasks(project: Project) {
         val kotlinCompileTasks = project.tasks.withType<KotlinCompile>()
         kotlinCompileTasks.configureEach { task ->
-            task.kotlinOptions { opts ->
-                opts.jvmTarget = "1.8"
-                opts.freeCompilerArgs = listOf("-Xjvm-default=all")
+            task.compilerOptions {
+                jvmTarget.set(JvmTarget.JVM_1_8)
+                freeCompilerArgs.add("-Xjvm-default=all")
             }
         }
     }

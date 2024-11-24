@@ -50,7 +50,9 @@ def mainTaskNames = [
         'compileKotlin',
         'javaSourcesJar',
         'kotlinSourcesJar',
+        'sourcesJar',
         'dokkaHtml',
+        'dokkaGeneratePublicationHtml',
 ].toSet()
 
 def testTaskNames = [
