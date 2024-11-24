@@ -31,7 +31,7 @@ import java.util.TreeMap;
 /**
  * Thrift options applicable to all supported languages.
  */
-public abstract class ThriftOptions implements Serializable {
+public class ThriftOptions implements Serializable {
     private boolean generateServiceClients = true;
     private FieldNameStyle nameStyle = FieldNameStyle.DEFAULT;
     private String listType = null;
@@ -39,6 +39,7 @@ public abstract class ThriftOptions implements Serializable {
     private String mapType = null;
     private boolean parcelable = false;
     private boolean allowUnknownEnumValues = false;
+    private boolean generateServer = false;
 
     @Input
     public boolean getGenerateServiceClients() {
@@ -125,5 +126,14 @@ public abstract class ThriftOptions implements Serializable {
 
     public void setAllowUnknownEnumValues(boolean allowUnknownEnumValues) {
         this.allowUnknownEnumValues = allowUnknownEnumValues;
+    }
+
+    @Input
+    public boolean isGenerateServer() {
+        return generateServer;
+    }
+
+    public void setGenerateServer(boolean generateServer) {
+        this.generateServer = generateServer;
     }
 }

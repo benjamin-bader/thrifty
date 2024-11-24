@@ -26,21 +26,6 @@ import java.io.Serializable;
 // Can't just use ThriftOptions cuz Gradle decorates them with non-serializable types,
 // and we need to pass these options to Worker API params that must be serializable.
 class SerializableThriftOptions implements Serializable {
-    static class Kotlin implements Serializable {
-        private boolean generateServer;
-
-        // Required for Serializable
-        Kotlin() {}
-
-        public Kotlin(boolean generateServer) {
-            this.generateServer = generateServer;
-        }
-
-        public boolean isGenerateServer() {
-            return generateServer;
-        }
-    }
-
     private boolean generateServiceClients = true;
     private FieldNameStyle nameStyle = FieldNameStyle.DEFAULT;
     private String listType = null;
@@ -48,7 +33,7 @@ class SerializableThriftOptions implements Serializable {
     private String mapType = null;
     private boolean parcelable = false;
     private boolean allowUnknownEnumValues = false;
-    private Kotlin kotlinOpts;
+    private boolean generateServer = false;
 
     // For Serializable
     SerializableThriftOptions() {}
@@ -61,13 +46,7 @@ class SerializableThriftOptions implements Serializable {
         this.mapType = options.getMapType();
         this.parcelable = options.getParcelable();
         this.allowUnknownEnumValues = options.getAllowUnknownEnumValues();
-
-        if (options instanceof KotlinThriftOptions) {
-            KotlinThriftOptions kto = (KotlinThriftOptions) options;
-            this.kotlinOpts = new Kotlin(kto.isGenerateServer());
-        } else {
-            throw new IllegalArgumentException("Unexpected thrift-options type:" + options);
-        }
+        this.generateServer = options.isGenerateServer();
     }
 
     public boolean isGenerateServiceClients() {
@@ -98,11 +77,7 @@ class SerializableThriftOptions implements Serializable {
         return allowUnknownEnumValues;
     }
 
-    public Kotlin getKotlinOpts() {
-        return kotlinOpts;
-    }
-
-    public boolean isKotlin() {
-        return kotlinOpts != null;
+    public boolean isGenerateServer() {
+        return generateServer;
     }
 }

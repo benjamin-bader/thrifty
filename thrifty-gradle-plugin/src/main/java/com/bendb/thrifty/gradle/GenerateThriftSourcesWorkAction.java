@@ -91,12 +91,7 @@ public abstract class GenerateThriftSourcesWorkAction implements WorkAction<Gene
         }
 
         SerializableThriftOptions opts = getParameters().getThriftOptions().get();
-        if (opts.isKotlin()) {
-            generateKotlinThrifts(schema, opts);
-        } else {
-            // TODO: Refactor ThriftOptions, etc
-            throw new IllegalStateException("Only Kotlin thrift options are supported");
-        }
+        generateKotlinThrifts(schema, opts);
     }
 
     private void reportThriftException(LoadFailedException e) {
@@ -149,13 +144,11 @@ public abstract class GenerateThriftSourcesWorkAction implements WorkAction<Gene
             gen.parcelize();
         }
 
-        SerializableThriftOptions.Kotlin kopt = opts.getKotlinOpts();
-
         if (!opts.isGenerateServiceClients()) {
             gen.omitServiceClients();
         }
 
-        if (kopt.isGenerateServer()) {
+        if (opts.isGenerateServer()) {
             gen.generateServer();
         }
 
