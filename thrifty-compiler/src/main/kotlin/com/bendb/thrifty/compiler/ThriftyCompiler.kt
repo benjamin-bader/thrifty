@@ -27,7 +27,8 @@ import com.bendb.thrifty.schema.LoadFailedException
 import com.bendb.thrifty.schema.Loader
 import com.bendb.thrifty.schema.Schema
 import com.github.ajalt.clikt.core.CliktCommand
-import com.github.ajalt.clikt.output.TermUi
+import com.github.ajalt.clikt.core.Context
+import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.default
@@ -113,7 +114,6 @@ class ThriftyCompiler {
 
     private val cli = object : CliktCommand(
             name = "thrifty-compiler",
-            help = "Generate Java or Kotlin code from .thrift files"
     ) {
         val outputDirectory: Path by option("-o", "--out", help = "the output directory for generated files")
                 .path(canBeFile = false, canBeDir = true)
@@ -172,6 +172,10 @@ class ThriftyCompiler {
         val failOnUnknownEnumValues by option("--fail-on-unknown-enum-values",
                     help = "When set, unknown values found when decoding will throw an exception. Otherwise, it uses null/default values.")
                 .flag("--no-fail-on-unknown-enum-values", default = true)
+
+        override fun help(context: Context): String {
+            return "Generate Kotlin code from .thrift files"
+        }
 
         override fun run() {
             val loader = Loader()
@@ -250,21 +254,24 @@ class ThriftyCompiler {
 
             val specs = gen.generate(schema)
 
+
             specs.forEach { it.writeTo(outputDirectory) }
         }
     }
 
-    fun compile(args: Array<String>) = cli.main(args)
+    fun compile(args: Array<String>) {
+        try {
+            cli.main(args)
+        } catch (e: Exception) {
+            cli.echo("Unhandled exception", err = true)
+            e.printStackTrace(System.err)
+            exitProcess(1)
+        }
+    }
 
     companion object {
         @JvmStatic fun main(args: Array<String>) {
-            try {
-                ThriftyCompiler().compile(args)
-            } catch (e: Exception) {
-                TermUi.echo("Unhandled exception", err = true)
-                e.printStackTrace(System.err)
-                exitProcess(1)
-            }
+            ThriftyCompiler().compile(args)
         }
     }
 }
