@@ -12,7 +12,7 @@ antlr = "org.antlr:antlr4:4.13.2"
 apacheThrift = "org.apache.thrift:libthrift:0.17.0"
 atomicfu-common = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
 clikt = "com.github.ajalt.clikt:clikt:5.0.1"
-dokka = "org.jetbrains.dokka:dokka-gradle-plugin:1.9.0"
+dokka = "org.jetbrains.dokka:dokka-gradle-plugin:2.0.0-Beta"
 guava = "com.google.guava:guava:33.3.1-jre"
 kotlin-bom = { module = "org.jetbrains.kotlin:kotlin-bom", version.ref = "kotlin" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
@@ -23,7 +23,7 @@ kotlinx-coroutinesTest = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-te
 kotlinPoet = "com.squareup:kotlinpoet:2.0.0"
 ktor-network = { module = "io.ktor:ktor-network", version.ref = "ktor" }
 ktor-networkTls = { module = "io.ktor:ktor-network-tls", version.ref = "ktor" }
-mavenPublishPlugin = "com.vanniktech:gradle-maven-publish-plugin:0.25.3"
+mavenPublishPlugin = "com.vanniktech:gradle-maven-publish-plugin:0.30.0"
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 
 junit = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
@@ -43,7 +43,6 @@ kotlin = [ "kotlin-stdlib", "kotlin-reflect" ]
 testing = ["junit", "hamcrest", "kotest-assertions-core", "kotest-assertions-coreJvm"]
 
 [plugins]
-dokka = "org.jetbrains.dokka:1.9.0"
 gradlePluginPublish = "com.gradle.plugin-publish:1.2.1"
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-mpp = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
