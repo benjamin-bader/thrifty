@@ -8,7 +8,7 @@ ktor = "2.3.13"
 okio = "3.9.1"
 
 [libraries]
-antlr = "org.antlr:antlr4:4.9.3"
+antlr = "org.antlr:antlr4:4.13.2"
 apacheThrift = "org.apache.thrift:libthrift:0.17.0"
 atomicfu-common = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
 clikt = "com.github.ajalt.clikt:clikt:3.1.0"
