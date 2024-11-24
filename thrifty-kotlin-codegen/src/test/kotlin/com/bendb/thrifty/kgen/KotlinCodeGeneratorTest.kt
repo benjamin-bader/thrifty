@@ -357,9 +357,9 @@ class KotlinCodeGeneratorTest {
 
         val parcelize = ClassName("kotlinx.android.parcel", "Parcelize")
 
-        struct.annotationSpecs.any { it.typeName == parcelize } shouldBe true
-        anEnum.annotationSpecs.any { it.typeName == parcelize } shouldBe true
-        svc.annotationSpecs.any { it.typeName == parcelize } shouldBe false
+        struct.annotations.any { it.typeName == parcelize } shouldBe true
+        anEnum.annotations.any { it.typeName == parcelize } shouldBe true
+        svc.annotations.any { it.typeName == parcelize } shouldBe false
     }
 
     @Test
@@ -415,12 +415,12 @@ class KotlinCodeGeneratorTest {
             |public class SvcClient(
             |  protocol: Protocol,
             |  dispatcher: CoroutineDispatcher = Dispatchers.IO,
-            |) : AsyncClientBase(protocol, dispatcher), Svc {
-            |  public override suspend fun doSomething(foo: Int): Int {
+            |) : AsyncClientBase(protocol, dispatcher),
+            |    Svc {
+            |  override suspend fun doSomething(foo: Int): Int {
             |    val call = DoSomethingCall(foo)
             |    return executeMethodCall(call)
             |  }
-            |
         """.trimMargin())
     }
 
@@ -539,25 +539,25 @@ class KotlinCodeGeneratorTest {
             |  public data class Foo(
             |    public val `value`: Int,
             |  ) : Union() {
-            |    public override fun toString(): String = "Union(Foo=${'$'}value)"
+            |    override fun toString(): String = "Union(Foo=${'$'}value)"
             |  }
             |
             |  public data class Bar(
             |    public val `value`: Long,
             |  ) : Union() {
-            |    public override fun toString(): String = "Union(Bar=${'$'}value)"
+            |    override fun toString(): String = "Union(Bar=${'$'}value)"
             |  }
             |
             |  public data class Baz(
             |    public val `value`: String,
             |  ) : Union() {
-            |    public override fun toString(): String = "Union(Baz=${'$'}value)"
+            |    override fun toString(): String = "Union(Baz=${'$'}value)"
             |  }
             |
             |  public data class NotFoo(
             |    public val `value`: Int,
             |  ) : Union() {
-            |    public override fun toString(): String = "Union(NotFoo=${'$'}value)"
+            |    override fun toString(): String = "Union(NotFoo=${'$'}value)"
             |  }
             |
         """.trimMargin())
@@ -605,7 +605,7 @@ class KotlinCodeGeneratorTest {
         file.shouldCompile()
 
         file.single().toString() should contain("""
-            |    public override suspend fun read(protocol: Protocol): Union {
+            |    override suspend fun read(protocol: Protocol): Union {
             |      protocol.readStructBegin()
             |      var result : Union? = null
             |      while (true) {
@@ -714,14 +714,14 @@ class KotlinCodeGeneratorTest {
 
         file.single().toString() should contain("""
             |public sealed class UnionStruct : Struct {
-            |  public override suspend fun write(protocol: Protocol): Unit {
+            |  override suspend fun write(protocol: Protocol) {
             |    ADAPTER.write(protocol, this)
             |  }
             |
             |  public data class Struct(
             |    public val `value`: Bonk,
             |  ) : UnionStruct() {
-            |    public override fun toString(): String = "UnionStruct(Struct=${'$'}value)"
+            |    override fun toString(): String = "UnionStruct(Struct=${'$'}value)"
             |  }
         """.trimMargin())
     }
@@ -764,9 +764,7 @@ class KotlinCodeGeneratorTest {
           1 -> {
             if (fieldMeta.typeId == TType.I32) {
               val field_ = protocol.readI32().let {
-                TestEnum.findByValue(it) ?: throw
-                    ThriftException(ThriftException.Kind.PROTOCOL_ERROR,
-                    "Unexpected value for enum type TestEnum: ${'$'}it")
+                TestEnum.findByValue(it) ?: throw ThriftException(ThriftException.Kind.PROTOCOL_ERROR, "Unexpected value for enum type TestEnum: ${'$'}it")
               }
               _local_field = field_
             } else {
@@ -808,9 +806,7 @@ class KotlinCodeGeneratorTest {
           2 -> {
             if (fieldMeta.typeId == TType.I32) {
               val field2 = protocol.readI32().let {
-                TestEnum.findByValue(it) ?: throw
-                    ThriftException(ThriftException.Kind.PROTOCOL_ERROR,
-                    "Unexpected value for enum type TestEnum: ${'$'}it")
+                TestEnum.findByValue(it) ?: throw ThriftException(ThriftException.Kind.PROTOCOL_ERROR, "Unexpected value for enum type TestEnum: ${'$'}it")
               }
               _local_field2 = field2
             } else {
@@ -854,9 +850,7 @@ class KotlinCodeGeneratorTest {
           2 -> {
             if (fieldMeta.typeId == TType.I32) {
               val field2 = protocol.readI32().let {
-                TestEnum.findByValue(it) ?: throw
-                    ThriftException(ThriftException.Kind.PROTOCOL_ERROR,
-                    "Unexpected value for enum type TestEnum: ${'$'}it")
+                TestEnum.findByValue(it) ?: throw ThriftException(ThriftException.Kind.PROTOCOL_ERROR, "Unexpected value for enum type TestEnum: ${'$'}it")
               }
               _local_field2 = field2
             } else {

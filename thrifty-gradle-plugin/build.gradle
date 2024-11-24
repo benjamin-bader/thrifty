@@ -43,33 +43,20 @@ gradlePlugin {
     }
 }
 
-def versionTask = tasks.register("generateVersionProps") { t ->
+def versionTask = tasks.register("generateVersionProps", WriteProperties) {
     def generatedResourcesDir = project.layout.buildDirectory.dir(["generated", "sources", "thrifty", "src", "main", "resources"].join(File.separator))
-    def outputFile = generatedResourcesDir.map {it -> it.file("thrifty-version.properties") }
+    destinationFile = generatedResourcesDir.map {dir -> dir.file("thrifty-version.properties") }
 
-    t.inputs.property("thrifty-version", VERSION_NAME)
-    t.inputs.property("kotlin-version", libs.versions.kotlin.get())
-    t.outputs.dir(generatedResourcesDir).withPropertyName("outputDir")
+    property("THRIFTY_VERSION", VERSION_NAME)
+    property("KOTLIN_VERSION", libs.versions.kotlin.get())
+}
 
-    doFirst {
-        outputFile.get().getAsFile().with {
-            it.delete()
-            it << "THRIFTY_VERSION=${VERSION_NAME}\n"
-            it << "KOTLIN_VERSION=${libs.versions.kotlin.get()}\n"
-        }
-    }
+processResources {
+    from versionTask
 }
 
 clean {
     delete versionTask
-}
-
-sourceSets {
-    main {
-        resources {
-            srcDirs += versionTask
-        }
-    }
 }
 
 dependencies {
