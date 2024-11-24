@@ -5,7 +5,7 @@ junit = "5.10.0"
 kotest = "5.5.4"
 kotlin = "2.0.21"
 ktor = "2.3.13"
-okio = "3.3.0"
+okio = "3.9.1"
 
 [libraries]
 antlr = "org.antlr:antlr4:4.9.3"
