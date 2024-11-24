@@ -13,8 +13,6 @@ apacheThrift = "org.apache.thrift:libthrift:0.17.0"
 atomicfu-common = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
 clikt = "com.github.ajalt.clikt:clikt:5.0.1"
 dokka = "org.jetbrains.dokka:dokka-gradle-plugin:2.0.0-Beta"
-clikt = "com.github.ajalt.clikt:clikt:5.0.1"
-dokka = "org.jetbrains.dokka:dokka-gradle-plugin:1.9.0"
 guava = "com.google.guava:guava:33.3.1-jre"
 kotlin-bom = { module = "org.jetbrains.kotlin:kotlin-bom", version.ref = "kotlin" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
