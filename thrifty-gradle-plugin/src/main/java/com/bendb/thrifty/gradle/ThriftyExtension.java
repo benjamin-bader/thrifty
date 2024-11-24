@@ -69,7 +69,7 @@ public abstract class ThriftyExtension {
                 .convention(Collections.singletonList(
                         new DefaultThriftSourceDirectory(
                                 getDefaultSourceDirectorySet())));
-        this.thriftOptions = objects.property(ThriftOptions.class).convention(new KotlinThriftOptions());
+        this.thriftOptions = objects.property(ThriftOptions.class).value(new ThriftOptions());
         this.outputDirectory = objects.directoryProperty().convention(layout.getBuildDirectory().dir(DEFAULT_OUTPUT_DIR));
         this.thriftyVersion = objects.property(String.class);
     }
@@ -155,9 +155,41 @@ public abstract class ThriftyExtension {
         }
     }
 
-    public void kotlin(Action<KotlinThriftOptions> action) {
-        KotlinThriftOptions opts = objects.newInstance(KotlinThriftOptions.class);
-        action.execute(opts);
-        thriftOptions.set(opts);
+    // ThriftOptions forwards
+
+    public void setGenerateServiceClients(boolean generateServiceClients) {
+        thriftOptions.get().setGenerateServiceClients(generateServiceClients);
+    }
+
+    public void setNameStyle(String styleName) {
+        thriftOptions.get().setNameStyle(styleName);
+    }
+
+    public void setNameStyle(FieldNameStyle style) {
+        thriftOptions.get().setNameStyle(style);
+    }
+
+    public void setListType(String listType) {
+        thriftOptions.get().setListType(listType);
+    }
+
+    public void setSetType(String setType) {
+        thriftOptions.get().setSetType(setType);
+    }
+
+    public void setMapType(String mapType) {
+        thriftOptions.get().setMapType(mapType);
+    }
+
+    public void setParcelable(boolean parcelable) {
+        thriftOptions.get().setParcelable(parcelable);
+    }
+
+    public void setAllowUnknownEnumValues(boolean allowUnknownEnumValues) {
+        thriftOptions.get().setAllowUnknownEnumValues(allowUnknownEnumValues);
+    }
+
+    public void setGenerateServer(boolean generateServer) {
+        thriftOptions.get().setGenerateServer(generateServer);
     }
 }
