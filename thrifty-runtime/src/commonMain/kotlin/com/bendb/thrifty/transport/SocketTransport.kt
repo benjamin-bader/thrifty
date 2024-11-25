@@ -23,12 +23,13 @@ package com.bendb.thrifty.transport
 
 import io.ktor.network.selector.SelectorManager
 import io.ktor.network.sockets.Socket
-import io.ktor.network.sockets.SocketOptions
 import io.ktor.network.sockets.aSocket
 import io.ktor.network.sockets.openReadChannel
 import io.ktor.network.sockets.openWriteChannel
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.ByteWriteChannel
+import io.ktor.utils.io.close
+import io.ktor.utils.io.readAvailable
 import io.ktor.utils.io.writeFully
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -74,8 +75,7 @@ class SocketTransport internal constructor(
         require(count >= 0) { "count cannot be negative" }
         require(offset + count <= buffer.size) { "offset + count cannot exceed buffer size" }
 
-        readChannel.readFully(buffer, offset, count)
-        return count
+        return readChannel.readAvailable(buffer, offset, count)
     }
 
     override suspend fun write(data: ByteArray) {
@@ -83,7 +83,15 @@ class SocketTransport internal constructor(
     }
 
     override suspend fun write(buffer: ByteArray, offset: Int, count: Int) {
-        writeChannel.writeFully(buffer, offset, count)
+        require(offset >= 0) { "offset cannot be negative" }
+        require(count >= 0) { "count cannot be negative" }
+        require(offset + count <= buffer.size) { "offset + count cannot exceed buffer size" }
+
+        writeChannel.writeFully(
+            value = buffer,
+            startIndex = offset,
+            endIndex = offset + count
+        )
     }
 
     override suspend fun flush() {
