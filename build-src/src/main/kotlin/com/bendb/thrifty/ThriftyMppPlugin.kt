@@ -26,8 +26,8 @@ import org.gradle.api.Project
 
 class ThriftyMppPlugin : Plugin<Project> {
     override fun apply(project: Project) {
-        project.plugins.apply<ThriftyJavaPlugin>()
         project.plugins.apply(Plugins.KOTLIN_MPP)
+        project.plugins.apply(Plugins.JACOCO)
         if (project.shouldSignAndDocumentBuild) {
             project.plugins.apply(Plugins.DOKKA)
         }
