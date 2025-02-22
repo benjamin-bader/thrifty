@@ -2,7 +2,6 @@
  * Thrifty
  *
  * Copyright (c) Benjamin Bader
- * Copyright (c) Microsoft Corporation
  *
  * All rights reserved.
  *
@@ -19,11 +18,10 @@
  *
  * See the Apache Version 2.0 License for specific language governing permissions and limitations under the License.
  */
-package com.bendb.thrifty.transport
+package com.bendb.thrifty.protocol
 
-import io.ktor.network.sockets.Socket
-import io.ktor.network.tls.tls
+import okio.IOException
 
-actual suspend fun Socket.establishTls(): Socket {
-    return this.tls(coroutineContext)
+class ProtocolException(message: String) : IOException(message) {
+    constructor() : this("Protocol error")
 }

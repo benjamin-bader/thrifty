@@ -45,7 +45,6 @@
 package com.bendb.thrifty.protocol
 
 import com.bendb.thrifty.TType
-import com.bendb.thrifty.internal.ProtocolException
 import com.bendb.thrifty.transport.Transport
 import okio.ByteString
 import okio.ByteString.Companion.toByteString

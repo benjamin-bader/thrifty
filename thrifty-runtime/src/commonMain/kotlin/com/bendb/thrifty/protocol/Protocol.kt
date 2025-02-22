@@ -23,7 +23,6 @@ package com.bendb.thrifty.protocol
 
 import okio.ByteString
 import okio.Closeable
-import okio.IOException
 
 interface Protocol : Closeable {
 
