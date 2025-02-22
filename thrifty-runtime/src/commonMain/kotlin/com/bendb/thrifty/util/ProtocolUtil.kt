@@ -22,12 +22,12 @@
 package com.bendb.thrifty.util
 
 import com.bendb.thrifty.TType
-import com.bendb.thrifty.internal.ProtocolException
 import com.bendb.thrifty.protocol.Protocol
-import okio.IOException
+import com.bendb.thrifty.protocol.ProtocolException
 import kotlin.jvm.JvmStatic
 
 object ProtocolUtil {
+    @JvmStatic
     suspend fun skip(protocol: Protocol, typeCode: Byte) {
         when (typeCode) {
             TType.BOOL -> protocol.readBool()

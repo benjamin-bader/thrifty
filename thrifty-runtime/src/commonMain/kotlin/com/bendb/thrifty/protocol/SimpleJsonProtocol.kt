@@ -21,11 +21,9 @@
  */
 package com.bendb.thrifty.protocol
 
-import com.bendb.thrifty.internal.ProtocolException
 import com.bendb.thrifty.transport.Transport
 import okio.Buffer
 import okio.ByteString
-import okio.IOException
 
 /**
  * A protocol that maps Thrift data to idiomatic JSON.

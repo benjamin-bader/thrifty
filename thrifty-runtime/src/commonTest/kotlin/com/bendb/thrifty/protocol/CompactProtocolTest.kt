@@ -25,7 +25,6 @@ import com.bendb.thrifty.transport.BufferTransport
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import okio.Buffer
-import okio.IOException
 import kotlin.math.PI
 import kotlin.test.Test
 

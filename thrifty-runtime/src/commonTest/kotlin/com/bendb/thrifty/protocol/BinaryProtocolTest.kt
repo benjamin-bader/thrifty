@@ -22,7 +22,6 @@
 package com.bendb.thrifty.protocol
 
 import com.bendb.thrifty.TType
-import com.bendb.thrifty.internal.ProtocolException
 import com.bendb.thrifty.transport.BufferTransport
 import com.bendb.thrifty.util.ProtocolUtil.skip
 import io.kotest.assertions.fail

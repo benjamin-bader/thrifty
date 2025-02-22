@@ -26,6 +26,7 @@ import io.ktor.network.sockets.Socket
 import io.ktor.network.sockets.aSocket
 import io.ktor.network.sockets.openReadChannel
 import io.ktor.network.sockets.openWriteChannel
+import io.ktor.network.tls.*
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.close
@@ -34,11 +35,8 @@ import io.ktor.utils.io.writeFully
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlin.coroutines.coroutineContext
 import kotlin.time.Duration
-
-// ktor doesn't have a common tls() method.  If we want to manager the tls() call,
-// we need to do it with expect/actual to reach the platform-specific APIs.
-expect suspend fun Socket.establishTls(): Socket
 
 class SocketTransport internal constructor(
     builder: Builder
@@ -111,7 +109,7 @@ class SocketTransport internal constructor(
             }
 
         if (tlsEnabled) {
-            socket = socket.establishTls()
+            socket = socket.tls(coroutineContext)
         }
         readChannel = socket.openReadChannel()
         writeChannel = socket.openWriteChannel(autoFlush = false)

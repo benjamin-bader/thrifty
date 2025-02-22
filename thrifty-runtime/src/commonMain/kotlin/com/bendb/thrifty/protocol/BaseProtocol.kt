@@ -22,7 +22,6 @@
 package com.bendb.thrifty.protocol
 
 import com.bendb.thrifty.transport.Transport
-import okio.IOException
 import kotlin.jvm.JvmField
 
 abstract class BaseProtocol(

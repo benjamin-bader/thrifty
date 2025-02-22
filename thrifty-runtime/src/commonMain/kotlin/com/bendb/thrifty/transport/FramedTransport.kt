@@ -83,35 +83,36 @@ class FramedTransport(
             return
         }
 
-        val headerBytes = ByteArray(4)
-        headerBytes[0] = ((size shr 24) and 0xFF).toByte()
-        headerBytes[1] = ((size shr 16) and 0xFF).toByte()
-        headerBytes[2] = ((size shr 8)  and 0xFF).toByte()
-        headerBytes[3] = ( size         and 0xFF).toByte()
-        inner.write(headerBytes)
-        inner.write(write.buf, 0, size)
+        write.buf[0] = ((size shr 24) and 0xFF).toByte()
+        write.buf[1] = ((size shr 16) and 0xFF).toByte()
+        write.buf[2] = ((size shr 8)  and 0xFF).toByte()
+        write.buf[3] = ( size         and 0xFF).toByte()
+        inner.write(write.buf, 0, size + SimpleBuffer.HEADER_BUF_SIZE)
         inner.flush()
         write.reset()
     }
 
     private class SimpleBuffer(count: Int = 32) {
-        var buf: ByteArray = ByteArray(count.coerceAtLeast(32))
+        var buf: ByteArray = ByteArray(count.coerceAtLeast(32 + HEADER_BUF_SIZE))
         var size: Int = 0
 
+        private val pos: Int
+            get() = size + HEADER_BUF_SIZE
+
         fun write(buffer: ByteArray, offset: Int, count: Int) {
-            if (size + count > buf.size) {
-                buf = buf.copyOf(nextPowerOfTwo(size + count))
+            if (size + HEADER_BUF_SIZE + count > buf.size) {
+                buf = buf.copyOf(nextPowerOfTwo(buf.size + count + HEADER_BUF_SIZE))
             }
             buffer.copyInto(
                     destination = buf,
-                    destinationOffset = size,
+                    destinationOffset = pos,
                     startIndex = offset,
                     endIndex = offset + count)
             size += count
         }
 
         fun reset() {
-            buf = ByteArray(32)
+            buf = ByteArray(32 + HEADER_BUF_SIZE)
             size = 0
         }
 
@@ -123,6 +124,10 @@ class FramedTransport(
             n = n or (n ushr 8)
             n = n or (n ushr 16)
             return n + 1
+        }
+
+        companion object {
+            const val HEADER_BUF_SIZE = 4
         }
     }
 }
