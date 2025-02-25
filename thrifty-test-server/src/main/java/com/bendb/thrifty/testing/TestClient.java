@@ -41,10 +41,8 @@ import org.apache.thrift.transport.layered.TFastFramedTransport;
 import org.apache.thrift.transport.layered.TFramedTransport;
 
 /**
- * Test Java client for thrift. Essentially just a copy of the C++ version,
- * this makes a variety of requests to enable testing for both performance and
- * correctness of the output.
- *
+ * Test Java client for thrift. Essentially just a copy of the C++ version, this makes a variety of requests to enable
+ * testing for both performance and correctness of the output.
  */
 public class TestClient {
 
@@ -180,9 +178,7 @@ public class TestClient {
         int returnCode = 0;
         for (int test = 0; test < numTests; ++test) {
             try {
-                /**
-                 * CONNECT TEST
-                 */
+                /** CONNECT TEST */
                 System.out.println("Test #" + (test + 1) + ", " + "connect " + host + ":" + port);
 
                 if (transport.isOpen() == false) {
@@ -197,9 +193,7 @@ public class TestClient {
 
                 long start = System.nanoTime();
 
-                /**
-                 * VOID TEST
-                 */
+                /** VOID TEST */
                 try {
                     System.out.print("testVoid()");
                     testClient.testVoid();
@@ -209,9 +203,7 @@ public class TestClient {
                     throw new RuntimeException(tax);
                 }
 
-                /**
-                 * STRING TEST
-                 */
+                /** STRING TEST */
                 System.out.print("testString(\"Test\")");
                 String s = testClient.testString("Test");
                 System.out.print(" = \"" + s + "\"\n");
@@ -221,9 +213,7 @@ public class TestClient {
                     throw new RuntimeException("expected " + s + " to equal 'Test'");
                 }
 
-                /**
-                 * Multiplexed test
-                 */
+                /** Multiplexed test */
                 if (protocol_type.startsWith("multi")) {
                     SecondService.Client secondClient = new SecondService.Client(tProtocol2);
                     System.out.print("secondtestString(\"Test2\")");
@@ -235,9 +225,7 @@ public class TestClient {
                         throw new RuntimeException("Expected s to equal 'testString(\"Test2\")'");
                     }
                 }
-                /**
-                 * BYTE TEST
-                 */
+                /** BYTE TEST */
                 System.out.print("testByte(1)");
                 byte i8 = testClient.testByte((byte) 1);
                 System.out.print(" = " + i8 + "\n");
@@ -247,9 +235,7 @@ public class TestClient {
                     throw new RuntimeException("Expected i8 to equal 1");
                 }
 
-                /**
-                 * I32 TEST
-                 */
+                /** I32 TEST */
                 System.out.print("testI32(-1)");
                 int i32 = testClient.testI32(-1);
                 System.out.print(" = " + i32 + "\n");
@@ -259,9 +245,7 @@ public class TestClient {
                     throw new RuntimeException("Expected i32 to equal -1");
                 }
 
-                /**
-                 * I64 TEST
-                 */
+                /** I64 TEST */
                 System.out.print("testI64(-34359738368)");
                 long i64 = testClient.testI64(-34359738368L);
                 System.out.print(" = " + i64 + "\n");
@@ -271,9 +255,7 @@ public class TestClient {
                     throw new RuntimeException("Expected i64 to equal -34359738368L");
                 }
 
-                /**
-                 * DOUBLE TEST
-                 */
+                /** DOUBLE TEST */
                 System.out.print("testDouble(-5.325098235)");
                 double dub = testClient.testDouble(-5.325098235);
                 System.out.print(" = " + dub + "\n");
@@ -283,9 +265,7 @@ public class TestClient {
                     throw new RuntimeException("Expected dub to be around -5.325098235");
                 }
 
-                /**
-                 * BINARY TEST
-                 */
+                /** BINARY TEST */
                 try {
                     System.out.print("testBinary(-128...127) = ");
                     byte[] data = new byte[] {
@@ -328,9 +308,7 @@ public class TestClient {
                     throw new RuntimeException(ex);
                 }
 
-                /**
-                 * STRUCT TEST
-                 */
+                /** STRUCT TEST */
                 System.out.print("testStruct({\"Zero\", 1, -3, -5})");
                 Xtruct out = new Xtruct();
                 out.string_thing = "Zero";
@@ -349,9 +327,7 @@ public class TestClient {
                     throw new RuntimeException("Expected " + in + "to equal " + out);
                 }
 
-                /**
-                 * NESTED STRUCT TEST
-                 */
+                /** NESTED STRUCT TEST */
                 System.out.print("testNest({1, {\"Zero\", 1, -3, -5}), 5}");
                 Xtruct2 out2 = new Xtruct2();
                 out2.byte_thing = (short) 1;
@@ -371,9 +347,7 @@ public class TestClient {
                     throw new RuntimeException("Nested struct failure");
                 }
 
-                /**
-                 * MAP TEST
-                 */
+                /** MAP TEST */
                 Map<Integer, Integer> mapout = new HashMap<Integer, Integer>();
                 for (int i = 0; i < 5; ++i) {
                     mapout.put(i, i - 10);
@@ -407,9 +381,7 @@ public class TestClient {
                     throw new RuntimeException("Map failure");
                 }
 
-                /**
-                 * STRING MAP TEST
-                 */
+                /** STRING MAP TEST */
                 try {
                     Map<String, String> smapout = new HashMap<String, String>();
                     smapout.put("a", "2");
@@ -448,9 +420,7 @@ public class TestClient {
                     throw new RuntimeException(ex);
                 }
 
-                /**
-                 * SET TEST
-                 */
+                /** SET TEST */
                 Set<Integer> setout = new HashSet<Integer>();
                 for (int i = -2; i < 3; ++i) {
                     setout.add(i);
@@ -484,9 +454,7 @@ public class TestClient {
                     throw new RuntimeException("Set failure");
                 }
 
-                /**
-                 * LIST TEST
-                 */
+                /** LIST TEST */
                 List<Integer> listout = new ArrayList<Integer>();
                 for (int i = -2; i < 3; ++i) {
                     listout.add(i);
@@ -520,9 +488,7 @@ public class TestClient {
                     throw new RuntimeException("list failure");
                 }
 
-                /**
-                 * ENUM TEST
-                 */
+                /** ENUM TEST */
                 System.out.print("testEnum(ONE)");
                 Numberz ret = testClient.testEnum(Numberz.ONE);
                 System.out.print(" = " + ret + "\n");
@@ -568,9 +534,7 @@ public class TestClient {
                     throw new RuntimeException("Enum failure 5");
                 }
 
-                /**
-                 * TYPEDEF TEST
-                 */
+                /** TYPEDEF TEST */
                 System.out.print("testTypedef(309858235082523)");
                 long uid = testClient.testTypedef(309858235082523L);
                 System.out.print(" = " + uid + "\n");
@@ -580,9 +544,7 @@ public class TestClient {
                     throw new RuntimeException("Typedef failure");
                 }
 
-                /**
-                 * NESTED MAP TEST
-                 */
+                /** NESTED MAP TEST */
                 System.out.print("testMapMap(1)");
                 Map<Integer, Map<Integer, Integer>> mm = testClient.testMapMap(1);
                 System.out.print(" = {");
@@ -616,9 +578,7 @@ public class TestClient {
                     }
                 }
 
-                /**
-                 * INSANITY TEST
-                 */
+                /** INSANITY TEST */
                 boolean insanityFailed = true;
                 try {
                     Xtruct hello = new Xtruct();
@@ -707,9 +667,7 @@ public class TestClient {
                     throw new RuntimeException("Insanity failed");
                 }
 
-                /**
-                 * EXECPTION TEST
-                 */
+                /** EXECPTION TEST */
                 try {
                     System.out.print("testClient.testException(\"Xception\") =>");
                     testClient.testException("Xception");
@@ -740,9 +698,7 @@ public class TestClient {
                     throw new RuntimeException("Exception failure 3");
                 }
 
-                /**
-                 * MULTI EXCEPTION TEST
-                 */
+                /** MULTI EXCEPTION TEST */
                 try {
                     System.out.printf("testClient.testMultiException(\"Xception\", \"test 1\") =>");
                     testClient.testMultiException("Xception", "test 1");
@@ -774,9 +730,7 @@ public class TestClient {
                     throw new RuntimeException("Exception failure 6");
                 }
 
-                /**
-                 * ONEWAY TEST
-                 */
+                /** ONEWAY TEST */
                 System.out.print("testOneway(3)...");
                 long startOneway = System.nanoTime();
                 testClient.testOneway(3);

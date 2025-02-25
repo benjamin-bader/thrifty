@@ -101,10 +101,15 @@ class ThriftyJavaPlugin : Plugin<Project> {
     }
 
     private fun configureSpotless(project: Project) {
+        val generatedCode =
+            project.layout.buildDirectory.asFileTree.matching { it.include("generated/**/*.java") }
+
         project.plugins.apply(Plugins.SPOTLESS)
         project.extensions.configure(SpotlessExtension::class.java) { ext ->
             ext.java {
-                it.palantirJavaFormat()
+                it.palantirJavaFormat().formatJavadoc(true)
+                it.removeUnusedImports()
+                it.targetExclude(generatedCode)
             }
         }
     }

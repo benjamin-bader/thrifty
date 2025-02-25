@@ -41,8 +41,8 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.thrift.TException;
 
 /**
- * An implementation of the ThriftTest service, whose semantics are defined
- * in the documentation comments of ThriftTest.thrift.
+ * An implementation of the ThriftTest service, whose semantics are defined in the documentation comments of
+ * ThriftTest.thrift.
  */
 public class ThriftTestHandler implements Iface {
     private final PrintStream out;

@@ -29,10 +29,7 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.workers.WorkParameters;
 
-/**
- * Encapsulates all input to Thrifty compilation, in a {@link java.io.Serializable Serializable}
- * form.
- */
+/** Encapsulates all input to Thrifty compilation, in a {@link java.io.Serializable Serializable} form. */
 public interface GenerateThriftSourcesWorkParams extends WorkParameters {
     DirectoryProperty getOutputDirectory();
 

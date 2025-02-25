@@ -92,6 +92,11 @@ class ThriftyKotlinPlugin : Plugin<Project> {
         project.extensions.configure(SpotlessExtension::class.java) { ext ->
             ext.kotlin { kt ->
                 kt.ktfmt(maybeKtfmtVersion.get().toString())
+
+                kt.toggleOffOn()
+
+                kt.targetExclude(
+                    project.layout.buildDirectory.asFileTree.matching { it.include("generated/**/*.kt") })
             }
         }
     }

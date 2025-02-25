@@ -41,8 +41,7 @@ import org.gradle.workers.WorkerExecutor;
 /**
  * The Gradle task responsible for triggering generation of Thrifty source files.
  *
- * <p>In practice, just a thin layer around a Worker API action which does the heavy
- * lifting.
+ * <p>In practice, just a thin layer around a Worker API action which does the heavy lifting.
  */
 public abstract class ThriftyTask extends SourceTask {
     @OutputDirectory

@@ -38,9 +38,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskProvider;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * The plugin makes everything happen.
- */
+/** The plugin makes everything happen. */
 public abstract class ThriftyGradlePlugin implements Plugin<Project> {
     @Override
     public void apply(@NotNull Project project) {

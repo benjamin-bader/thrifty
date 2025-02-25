@@ -42,8 +42,8 @@ import org.gradle.api.provider.Provider;
 /**
  * Implements the 'thrifty' Gradle extension.
  *
- * <p>This is the public interface of our Gradle plugin to build scripts.  Renaming
- * or removing a method is a breaking change!
+ * <p>This is the public interface of our Gradle plugin to build scripts. Renaming or removing a method is a breaking
+ * change!
  */
 public abstract class ThriftyExtension {
     private static final String DEFAULT_SOURCE_DIR = Joiner.on(File.separator).join("src", "main", "thrift");

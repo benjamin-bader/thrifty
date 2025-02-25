@@ -27,9 +27,7 @@ import java.util.TreeMap;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 
-/**
- * Thrift options applicable to all supported languages.
- */
+/** Thrift options applicable to all supported languages. */
 public class ThriftOptions implements Serializable {
     private boolean generateServiceClients = true;
     private FieldNameStyle nameStyle = FieldNameStyle.DEFAULT;
