@@ -29,6 +29,7 @@ tasks.register("codeCoverageReport", JacocoReport) { t ->
     subprojects.each { sp ->
         t.dependsOn sp.tasks.withType(Test)
         t.dependsOn sp.tasks.findAll { it.name == "allTests" } // MPP why are you like this
+        t.dependsOn sp.tasks.findAll { it.name == 'spotlessJava' || it.name == 'spotlessKotlin' } // Spotless why are you like this
 
         def commonMain = sp.file("src/commonMain/kotlin")
         def jvmMain = sp.file("src/jvmMain/kotlin")

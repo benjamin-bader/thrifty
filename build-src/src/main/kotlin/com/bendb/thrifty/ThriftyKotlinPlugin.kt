@@ -89,14 +89,18 @@ class ThriftyKotlinPlugin : Plugin<Project> {
         val maybeKtfmtVersion = catalog.findVersion("ktfmt")
         check(maybeKtfmtVersion.isPresent) { "No kotlin-bom dependency found" }
 
+        val generatedCode = project.layout.buildDirectory.asFileTree.matching {
+            it.include("generated/**/*.kt")
+            it.include("generated-src/**/*.kt") // integration tests
+        }
+
         project.extensions.configure(SpotlessExtension::class.java) { ext ->
             ext.kotlin { kt ->
                 kt.ktfmt(maybeKtfmtVersion.get().toString())
 
                 kt.toggleOffOn()
 
-                kt.targetExclude(
-                    project.layout.buildDirectory.asFileTree.matching { it.include("generated/**/*.kt") })
+                kt.targetExclude(generatedCode)
             }
         }
     }
