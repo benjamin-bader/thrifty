@@ -21,6 +21,7 @@
  */
 package com.bendb.thrifty
 
+import com.diffplug.gradle.spotless.SpotlessExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
@@ -40,6 +41,7 @@ class ThriftyKotlinPlugin : Plugin<Project> {
         configureToolchain(project)
         addKotlinBom(project)
         configureKotlinTasks(project)
+        configureSpotless(project)
     }
 
     private fun applyBasePlugins(project: Project) {
@@ -75,6 +77,21 @@ class ThriftyKotlinPlugin : Plugin<Project> {
             task.compilerOptions {
                 jvmTarget.set(JvmTarget.JVM_1_8)
                 freeCompilerArgs.add("-Xjvm-default=all")
+            }
+        }
+    }
+
+    private fun configureSpotless(project: Project) {
+        // spotless has already been applied by the Java plugin
+
+        val catalogs = project.extensions.findByType<VersionCatalogsExtension>()!!
+        val catalog = catalogs.named("libs")
+        val maybeKtfmtVersion = catalog.findVersion("ktfmt")
+        check(maybeKtfmtVersion.isPresent) { "No kotlin-bom dependency found" }
+
+        project.extensions.configure(SpotlessExtension::class.java) { ext ->
+            ext.kotlin { kt ->
+                kt.ktfmt(maybeKtfmtVersion.get().toString())
             }
         }
     }

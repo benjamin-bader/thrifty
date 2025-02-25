@@ -43,4 +43,5 @@ dependencies {
     implementation libs.dokka
     implementation libs.kotlin.gradle.plugin
     implementation libs.mavenPublishPlugin
+    implementation libs.spotlessPlugin
 }

@@ -32,4 +32,6 @@ object Plugins {
     const val DOKKA = "org.jetbrains.dokka"
 
     const val MAVEN_PUBLISH = "com.vanniktech.maven.publish"
+
+    const val SPOTLESS = "com.diffplug.spotless"
 }
