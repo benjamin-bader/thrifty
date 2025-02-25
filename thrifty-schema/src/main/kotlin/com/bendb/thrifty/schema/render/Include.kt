@@ -29,5 +29,6 @@ package com.bendb.thrifty.schema.render
  *   space of the source file).
  * @property relative a flag indicating whether or not this [path] is a relative path.
  */
+@ConsistentCopyVisibility
 data class Include
 internal constructor(val path: String, internal val namespace: String, val relative: Boolean)

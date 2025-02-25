@@ -33,6 +33,7 @@ import java.io.File
  * @property includes any includes this file declares.
  * @property schema the [Schema] of elements contained within this file.
  */
+@ConsistentCopyVisibility
 data class ThriftSpec
 internal constructor(
     val filePath: String,
