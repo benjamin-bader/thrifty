@@ -21,6 +21,7 @@
  */
 package com.bendb.thrifty.gradle;
 
+import java.io.File;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.logging.configuration.ShowStacktrace;
@@ -28,16 +29,15 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.workers.WorkParameters;
 
-import java.io.File;
-
-/**
- * Encapsulates all input to Thrifty compilation, in a {@link java.io.Serializable Serializable}
- * form.
- */
+/** Encapsulates all input to Thrifty compilation, in a {@link java.io.Serializable Serializable} form. */
 public interface GenerateThriftSourcesWorkParams extends WorkParameters {
     DirectoryProperty getOutputDirectory();
+
     ListProperty<File> getIncludePath();
+
     ConfigurableFileCollection getSource();
+
     Property<SerializableThriftOptions> getThriftOptions();
+
     Property<ShowStacktrace> getShowStacktrace();
 }

@@ -26,53 +26,39 @@ package com.bendb.thrifty.schema
  *
  * @property elementType The type of value contained by instances of this type.
  */
-class SetType internal constructor(
-        val elementType: ThriftType,
-        override val annotations: Map<String, String> = emptyMap()
+class SetType
+internal constructor(
+    val elementType: ThriftType,
+    override val annotations: Map<String, String> = emptyMap()
 ) : ThriftType("set<" + elementType.name + ">") {
 
-    override val isSet: Boolean = true
+  override val isSet: Boolean = true
 
-    override fun <T> accept(visitor: ThriftType.Visitor<T>): T = visitor.visitSet(this)
+  override fun <T> accept(visitor: ThriftType.Visitor<T>): T = visitor.visitSet(this)
 
-    override fun withAnnotations(annotations: Map<String, String>): ThriftType {
-        return SetType(elementType, mergeAnnotations(this.annotations, annotations))
+  override fun withAnnotations(annotations: Map<String, String>): ThriftType {
+    return SetType(elementType, mergeAnnotations(this.annotations, annotations))
+  }
+
+  /** Creates a [Builder] initialized with this type's values. */
+  fun toBuilder(): Builder = Builder(this)
+
+  /** An object that can create new [SetType] instances. */
+  class Builder(private var elementType: ThriftType, private var annotations: Map<String, String>) {
+    internal constructor(type: SetType) : this(type, type.annotations) {
+      this.elementType = type
+      this.annotations = type.annotations
     }
 
-    /**
-     * Creates a [Builder] initialized with this type's values.
-     */
-    fun toBuilder(): Builder = Builder(this)
+    /** Use the given [elementType] with the set type under construction. */
+    fun elementType(elementType: ThriftType): Builder = apply { this.elementType = elementType }
 
-    /**
-     * An object that can create new [SetType] instances.
-     */
-    class Builder(
-        private var elementType: ThriftType,
-        private var annotations: Map<String, String>
-    ) {
-        internal constructor(type: SetType) : this(type, type.annotations) {
-            this.elementType = type
-            this.annotations = type.annotations
-        }
-
-        /**
-         * Use the given [elementType] with the set type under construction.
-         */
-        fun elementType(elementType: ThriftType): Builder = apply {
-            this.elementType = elementType
-        }
-
-        /**
-         * Use the given [annotations] with the set type under construction.
-         */
-        fun annotations(annotations: Map<String, String>): Builder = apply {
-            this.annotations = annotations
-        }
-
-        /**
-         * Creates a new [SetType] instance.
-         */
-        fun build(): SetType = SetType(elementType, annotations)
+    /** Use the given [annotations] with the set type under construction. */
+    fun annotations(annotations: Map<String, String>): Builder = apply {
+      this.annotations = annotations
     }
+
+    /** Creates a new [SetType] instance. */
+    fun build(): SetType = SetType(elementType, annotations)
+  }
 }

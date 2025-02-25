@@ -24,13 +24,11 @@ package com.bendb.thrifty.compiler.spi;
 import com.squareup.kotlinpoet.TypeSpec;
 
 /**
- * When specified as part of code generation, processes all types after they
- * are computed, but before they are written to disk.  This allows you to make
- * arbitrary modifications to types such as implementing your own interfaces,
- * renaming fields, or anything you might wish to do.
+ * When specified as part of code generation, processes all types after they are computed, but before they are written
+ * to disk. This allows you to make arbitrary modifications to types such as implementing your own interfaces, renaming
+ * fields, or anything you might wish to do.
  *
- * <p>For example, a processor that implements java.lang.Serializable on all
- * generated types:
+ * <p>For example, a processor that implements java.lang.Serializable on all generated types:
  *
  * <pre><code>
  * public class SerializableTypeProcessor implements TypeProcessor {
@@ -53,13 +51,11 @@ public interface TypeProcessor {
     /**
      * Processes and returns a given type.
      *
-     * <p>The given {@code type} will have been generated from compiled Thrift
-     * files, and will not have been written to disk.  It can be returned
-     * unaltered, or a modified copy can be returned.
+     * <p>The given {@code type} will have been generated from compiled Thrift files, and will not have been written to
+     * disk. It can be returned unaltered, or a modified copy can be returned.
      *
-     * <p>Finally, if {@code null} is returned, then no file will be generated.
-     * This can be used to selectively suppress types, e.g. if it is known that
-     * it will be unused.
+     * <p>Finally, if {@code null} is returned, then no file will be generated. This can be used to selectively suppress
+     * types, e.g. if it is known that it will be unused.
      *
      * @param type a {@link TypeSpec} generated based on Thrift IDL.
      * @return a (possibly modified) {@link TypeSpec} to be written to disk

@@ -21,13 +21,10 @@
  */
 package com.bendb.thrifty.gradle;
 
+import javax.inject.Inject;
 import org.gradle.api.file.SourceDirectorySet;
 
-import javax.inject.Inject;
-
-/**
- * The default implementation of {@link ThriftSourceDirectory}.  Backed by a {@link SourceDirectorySet}.
- */
+/** The default implementation of {@link ThriftSourceDirectory}. Backed by a {@link SourceDirectorySet}. */
 class DefaultThriftSourceDirectory implements ThriftSourceDirectory {
     private final SourceDirectorySet sourceDirectorySet;
 

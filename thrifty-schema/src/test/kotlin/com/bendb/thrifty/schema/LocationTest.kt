@@ -23,28 +23,31 @@ package com.bendb.thrifty.schema
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import org.junit.jupiter.api.Test
 import java.io.File
 import java.nio.file.Paths
+import org.junit.jupiter.api.Test
 
 class LocationTest {
-    @Test fun `equals uses structural-equality semantics`() {
-        val base = Location.get("/var/log", "test.txt").at(1, 1)
+  @Test
+  fun `equals uses structural-equality semantics`() {
+    val base = Location.get("/var/log", "test.txt").at(1, 1)
 
-        base shouldBe base
-        base shouldNotBe base.at(1, 2)
-        base shouldNotBe base.at(2, 1)
-        base shouldNotBe Location.get("/var/log", "data.dat").at(1, 1)
-        base shouldNotBe Location.get("/etc/config", "test.txt").at(1, 1)
-    }
+    base shouldBe base
+    base shouldNotBe base.at(1, 2)
+    base shouldNotBe base.at(2, 1)
+    base shouldNotBe Location.get("/var/log", "data.dat").at(1, 1)
+    base shouldNotBe Location.get("/etc/config", "test.txt").at(1, 1)
+  }
 
-    @Test fun `toString is human-readable`() {
-        val location = Location.get("/var/log", "syslog").at(10, 5)
-        "$location" shouldBe "/var/log${File.separator}syslog: (10, 5)"
-    }
+  @Test
+  fun `toString is human-readable`() {
+    val location = Location.get("/var/log", "syslog").at(10, 5)
+    "$location" shouldBe "/var/log${File.separator}syslog: (10, 5)"
+  }
 
-    @Test fun `asPath is a simple concatenation of base and path`() {
-        val loc = Location.get("/var/log", "thrifty/errors")
-        loc.asPath shouldBe Paths.get("/var/log/thrifty/errors")
-    }
+  @Test
+  fun `asPath is a simple concatenation of base and path`() {
+    val loc = Location.get("/var/log", "thrifty/errors")
+    loc.asPath shouldBe Paths.get("/var/log/thrifty/errors")
+  }
 }

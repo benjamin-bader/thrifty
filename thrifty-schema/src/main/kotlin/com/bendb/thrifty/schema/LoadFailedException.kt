@@ -24,10 +24,7 @@ package com.bendb.thrifty.schema
 /**
  * Represents a failure to load .thrift files into a [Schema].
  *
- * @property errorReporter
- * An object containing warnings and errors encountered during loading.
+ * @property errorReporter An object containing warnings and errors encountered during loading.
  */
-class LoadFailedException(
-        cause: Throwable,
-        val errorReporter: ErrorReporter
-) : Exception(errorReporter.formattedReports().joinToString("\n"), cause)
+class LoadFailedException(cause: Throwable, val errorReporter: ErrorReporter) :
+    Exception(errorReporter.formattedReports().joinToString("\n"), cause)

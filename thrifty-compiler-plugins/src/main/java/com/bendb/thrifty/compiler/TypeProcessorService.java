@@ -22,14 +22,13 @@
 package com.bendb.thrifty.compiler;
 
 import com.bendb.thrifty.compiler.spi.TypeProcessor;
-
 import java.util.Iterator;
 import java.util.ServiceLoader;
 
 /**
  * An object that locate {@link TypeProcessor} objects from the current classpath.
  *
- * Used by the compiler to detect and run user-provided processors.
+ * <p>Used by the compiler to detect and run user-provided processors.
  */
 public final class TypeProcessorService {
     private static TypeProcessorService instance;
@@ -45,11 +44,10 @@ public final class TypeProcessorService {
     private ServiceLoader<TypeProcessor> serviceLoader = ServiceLoader.load(TypeProcessor.class);
 
     /**
-     * Gets the first {@link TypeProcessor} implementation loaded, or
-     * {@code null} if none are found.
+     * Gets the first {@link TypeProcessor} implementation loaded, or {@code null} if none are found.
      *
-     * Because service ordering is non-deterministic, only the first instance
-     * is returned.  A warning will be printed if more than one are found.
+     * <p>Because service ordering is non-deterministic, only the first instance is returned. A warning will be printed
+     * if more than one are found.
      *
      * @return The first located {@link TypeProcessor}, or {@code null}.
      */

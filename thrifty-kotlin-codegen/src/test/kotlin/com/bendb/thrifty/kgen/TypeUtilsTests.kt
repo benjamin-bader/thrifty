@@ -29,29 +29,31 @@ import okio.ByteString
 import org.junit.jupiter.api.Test
 
 class TypeUtilsTests {
-    @Test fun `typeCode of builtins`() {
-        BuiltinType.BOOL.typeCode shouldBe TType.BOOL
-        BuiltinType.BYTE.typeCode shouldBe TType.BYTE
-        BuiltinType.I8.typeCode shouldBe TType.BYTE
-        BuiltinType.I16.typeCode shouldBe TType.I16
-        BuiltinType.I32.typeCode shouldBe TType.I32
-        BuiltinType.I64.typeCode shouldBe TType.I64
-        BuiltinType.DOUBLE.typeCode shouldBe TType.DOUBLE
-        BuiltinType.STRING.typeCode shouldBe TType.STRING
-        BuiltinType.BINARY.typeCode shouldBe TType.STRING // binary == string, when serialized.
-        BuiltinType.VOID.typeCode shouldBe TType.VOID
-    }
+  @Test
+  fun `typeCode of builtins`() {
+    BuiltinType.BOOL.typeCode shouldBe TType.BOOL
+    BuiltinType.BYTE.typeCode shouldBe TType.BYTE
+    BuiltinType.I8.typeCode shouldBe TType.BYTE
+    BuiltinType.I16.typeCode shouldBe TType.I16
+    BuiltinType.I32.typeCode shouldBe TType.I32
+    BuiltinType.I64.typeCode shouldBe TType.I64
+    BuiltinType.DOUBLE.typeCode shouldBe TType.DOUBLE
+    BuiltinType.STRING.typeCode shouldBe TType.STRING
+    BuiltinType.BINARY.typeCode shouldBe TType.STRING // binary == string, when serialized.
+    BuiltinType.VOID.typeCode shouldBe TType.VOID
+  }
 
-    @Test fun `typeName of builtins`() {
-        BuiltinType.BOOL.typeName shouldBe BOOLEAN
-        BuiltinType.BYTE.typeName shouldBe BYTE
-        BuiltinType.I8.typeName shouldBe BYTE
-        BuiltinType.I16.typeName shouldBe SHORT
-        BuiltinType.I32.typeName shouldBe INT
-        BuiltinType.I64.typeName shouldBe LONG
-        BuiltinType.DOUBLE.typeName shouldBe DOUBLE
-        BuiltinType.STRING.typeName shouldBe String::class.asTypeName()
-        BuiltinType.BINARY.typeName shouldBe ByteString::class.asTypeName()
-        BuiltinType.VOID.typeName shouldBe UNIT
-    }
+  @Test
+  fun `typeName of builtins`() {
+    BuiltinType.BOOL.typeName shouldBe BOOLEAN
+    BuiltinType.BYTE.typeName shouldBe BYTE
+    BuiltinType.I8.typeName shouldBe BYTE
+    BuiltinType.I16.typeName shouldBe SHORT
+    BuiltinType.I32.typeName shouldBe INT
+    BuiltinType.I64.typeName shouldBe LONG
+    BuiltinType.DOUBLE.typeName shouldBe DOUBLE
+    BuiltinType.STRING.typeName shouldBe String::class.asTypeName()
+    BuiltinType.BINARY.typeName shouldBe ByteString::class.asTypeName()
+    BuiltinType.VOID.typeName shouldBe UNIT
+  }
 }

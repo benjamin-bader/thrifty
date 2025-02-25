@@ -29,133 +29,130 @@ import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
 class FieldTest {
-    private var location: Location = Location.get("", "")
-    private var fieldId: Int = 1
-    private var fieldName: String = "foo"
-    private var fieldType: TypeElement = ScalarTypeElement(location, "i32", null)
-    private var requiredness: Requiredness = Requiredness.DEFAULT
-    private var annotations: AnnotationElement? = null
-    private var documentation: String = ""
+  private var location: Location = Location.get("", "")
+  private var fieldId: Int = 1
+  private var fieldName: String = "foo"
+  private var fieldType: TypeElement = ScalarTypeElement(location, "i32", null)
+  private var requiredness: Requiredness = Requiredness.DEFAULT
+  private var annotations: AnnotationElement? = null
+  private var documentation: String = ""
 
-    @Test
-    fun requiredFields() {
-        requiredness = Requiredness.REQUIRED
-        val element = field()
+  @Test
+  fun requiredFields() {
+    requiredness = Requiredness.REQUIRED
+    val element = field()
 
-        val field = Field(element, emptyMap())
-        field.required shouldBe true
-        field.optional shouldBe false
-    }
+    val field = Field(element, emptyMap())
+    field.required shouldBe true
+    field.optional shouldBe false
+  }
 
-    @Test
-    fun optionalFields() {
-        requiredness = Requiredness.OPTIONAL
-        val element = field()
-        val field = Field(element, emptyMap())
-        field.required shouldBe false
-        field.optional shouldBe true
-    }
+  @Test
+  fun optionalFields() {
+    requiredness = Requiredness.OPTIONAL
+    val element = field()
+    val field = Field(element, emptyMap())
+    field.required shouldBe false
+    field.optional shouldBe true
+  }
 
-    @Test
-    fun defaultFields() {
-        val element = field()
-        val field = Field(element, emptyMap())
-        field.required shouldBe false
-        field.optional shouldBe false
-    }
+  @Test
+  fun defaultFields() {
+    val element = field()
+    val field = Field(element, emptyMap())
+    field.required shouldBe false
+    field.optional shouldBe false
+  }
 
-    @Test
-    fun unredactedAndUnobfuscatedByDefault() {
-        val element = field()
-        val field = Field(element, emptyMap())
-        field.isRedacted shouldBe false
-        field.isObfuscated shouldBe false
-    }
+  @Test
+  fun unredactedAndUnobfuscatedByDefault() {
+    val element = field()
+    val field = Field(element, emptyMap())
+    field.isRedacted shouldBe false
+    field.isObfuscated shouldBe false
+  }
 
-    @Test
-    fun redactedByThriftAnnotation() {
-        annotations = annotation("thrifty.redacted")
-        val element = field()
+  @Test
+  fun redactedByThriftAnnotation() {
+    annotations = annotation("thrifty.redacted")
+    val element = field()
 
-        val field = Field(element, emptyMap())
-        field.isRedacted shouldBe true
-    }
+    val field = Field(element, emptyMap())
+    field.isRedacted shouldBe true
+  }
 
-    @Test
-    fun redactedByShortThriftAnnotation() {
-        annotations = annotation("redacted")
-        val element = field()
+  @Test
+  fun redactedByShortThriftAnnotation() {
+    annotations = annotation("redacted")
+    val element = field()
 
-        val field = Field(element, emptyMap())
-        field.isRedacted shouldBe true
-    }
+    val field = Field(element, emptyMap())
+    field.isRedacted shouldBe true
+  }
 
-    @Test
-    fun redactedByJavadocAnnotation() {
-        documentation = "/** @redacted */"
-        val element = field()
+  @Test
+  fun redactedByJavadocAnnotation() {
+    documentation = "/** @redacted */"
+    val element = field()
 
-        val field = Field(element, emptyMap())
-        field.isRedacted shouldBe true
-    }
+    val field = Field(element, emptyMap())
+    field.isRedacted shouldBe true
+  }
 
-    @Test
-    fun obfuscatedByThriftAnnotation() {
-        annotations = annotation("thrifty.obfuscated")
-        val element = field()
+  @Test
+  fun obfuscatedByThriftAnnotation() {
+    annotations = annotation("thrifty.obfuscated")
+    val element = field()
 
-        val field = Field(element, emptyMap())
-        field.isObfuscated shouldBe true
-    }
+    val field = Field(element, emptyMap())
+    field.isObfuscated shouldBe true
+  }
 
-    @Test
-    fun obfuscatedByShortThriftAnnotation() {
-        annotations = annotation("obfuscated")
-        val element = field()
+  @Test
+  fun obfuscatedByShortThriftAnnotation() {
+    annotations = annotation("obfuscated")
+    val element = field()
 
-        val field = Field(element, emptyMap())
-        field.isObfuscated shouldBe true
-    }
+    val field = Field(element, emptyMap())
+    field.isObfuscated shouldBe true
+  }
 
-    @Test
-    fun obfuscatedByJavadocAnnotation() {
-        documentation = "/** @obfuscated */"
-        val element = field()
+  @Test
+  fun obfuscatedByJavadocAnnotation() {
+    documentation = "/** @obfuscated */"
+    val element = field()
 
-        val field = Field(element, emptyMap())
-        field.isObfuscated shouldBe true
-    }
+    val field = Field(element, emptyMap())
+    field.isObfuscated shouldBe true
+  }
 
-    @Test
-    fun builderCreatesCorrectField() {
-        val fieldElement = field()
-        val field = Field(fieldElement, emptyMap())
+  @Test
+  fun builderCreatesCorrectField() {
+    val fieldElement = field()
+    val field = Field(fieldElement, emptyMap())
 
-        val annotations = emptyMap<String, String>()
-        val thriftType = BuiltinType.DOUBLE
+    val annotations = emptyMap<String, String>()
+    val thriftType = BuiltinType.DOUBLE
 
-        val builderField = field.toBuilder()
-                .annotations(annotations)
-                .type(thriftType)
-                .build()
+    val builderField = field.toBuilder().annotations(annotations).type(thriftType).build()
 
-        builderField.annotations shouldBe annotations
-        builderField.type shouldBe thriftType
-    }
+    builderField.annotations shouldBe annotations
+    builderField.type shouldBe thriftType
+  }
 
-    private fun annotation(name: String): AnnotationElement {
-        return AnnotationElement(Location.get("", ""), mapOf(name to "true"))
-    }
+  private fun annotation(name: String): AnnotationElement {
+    return AnnotationElement(Location.get("", ""), mapOf(name to "true"))
+  }
 
-    private fun field(): FieldElement {
-        return FieldElement(
-                location = location,
-                fieldId = fieldId,
-                type = fieldType,
-                name = fieldName,
-                requiredness = requiredness,
-                documentation = documentation,
-                constValue = null,
-                annotations = annotations)
-    }
+  private fun field(): FieldElement {
+    return FieldElement(
+        location = location,
+        fieldId = fieldId,
+        type = fieldType,
+        name = fieldName,
+        requiredness = requiredness,
+        documentation = documentation,
+        constValue = null,
+        annotations = annotations)
+  }
 }

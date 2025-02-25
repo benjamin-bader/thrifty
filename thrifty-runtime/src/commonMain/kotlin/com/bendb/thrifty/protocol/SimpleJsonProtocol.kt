@@ -35,7 +35,7 @@ import okio.ByteString
  *
  * Note that, as of the initial release, this Protocol does not guarantee
  * that all emitted data is strictly valid JSON.  In particular, map keys are
- * not guaranteed to to be strings.
+ * not guaranteed to be strings.
  */
 class SimpleJsonProtocol(transport: Transport?) : BaseProtocol(transport!!) {
     /**

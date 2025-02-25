@@ -22,8 +22,9 @@ DOs and DON'Ts
 Coding Style
 ------------
 
-The coding style employed here is fairly conventional Kotlin.  Please use the standard Kotlin code style.  Anything not covered by CI
-checks is left to your discretion, but please try to favor matching the style of existing code.
+We use [Spotless](https://github.com/diffplug/spotless) to automatically apply and enforce code styles.  For Java code, we use [palantir-java-format](https://github.com/palantir/palantir-java-format); for Kotlin, [ktfmt](https://github.com/facebook/ktfmt).
+
+Code that does not pass CI, whether for functional or style reasons, will not be merged.  Style choices not covered by Spotless are left to your discretion, but please try to favor matching the style of existing code.
 
 Workflow
 --------

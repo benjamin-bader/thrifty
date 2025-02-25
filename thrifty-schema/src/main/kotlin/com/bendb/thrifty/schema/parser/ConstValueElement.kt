@@ -24,15 +24,14 @@ package com.bendb.thrifty.schema.parser
 import com.bendb.thrifty.schema.Location
 
 /**
- * Represents a literal value in a Thrift file for a constant or a field's
- * default value.
+ * Represents a literal value in a Thrift file for a constant or a field's default value.
  *
  * @property location The location of the text corresponding to this element.
  * @property thriftText The actual Thrift text comprising this const value.
  */
 sealed class ConstValueElement {
-    abstract val location: Location
-    abstract val thriftText: String
+  abstract val location: Location
+  abstract val thriftText: String
 }
 
 /**
@@ -41,12 +40,12 @@ sealed class ConstValueElement {
  * @property value The value, as a [Long].
  */
 data class IntValueElement(
-        override val location: Location,
-        override val thriftText: String,
-        val value: Long
+    override val location: Location,
+    override val thriftText: String,
+    val value: Long
 ) : ConstValueElement() {
-    /** @inheritdoc */
-    override fun toString(): String = "$value"
+  /** @inheritdoc */
+  override fun toString(): String = "$value"
 }
 
 /**
@@ -55,12 +54,12 @@ data class IntValueElement(
  * @property value The value, as a [Double].
  */
 data class DoubleValueElement(
-        override val location: Location,
-        override val thriftText: String,
-        val value: Double
+    override val location: Location,
+    override val thriftText: String,
+    val value: Double
 ) : ConstValueElement() {
-    /** @inheritdoc */
-    override fun toString(): String = "$value"
+  /** @inheritdoc */
+  override fun toString(): String = "$value"
 }
 
 /**
@@ -69,12 +68,12 @@ data class DoubleValueElement(
  * @property value The value, as a [String].
  */
 data class LiteralValueElement(
-        override val location: Location,
-        override val thriftText: String,
-        val value: String
+    override val location: Location,
+    override val thriftText: String,
+    val value: String
 ) : ConstValueElement() {
-    /** @inheritdoc */
-    override fun toString(): String = value
+  /** @inheritdoc */
+  override fun toString(): String = value
 }
 
 /**
@@ -83,12 +82,12 @@ data class LiteralValueElement(
  * @property value The identifier, as a [String].
  */
 data class IdentifierValueElement(
-        override val location: Location,
-        override val thriftText: String,
-        val value: String
+    override val location: Location,
+    override val thriftText: String,
+    val value: String
 ) : ConstValueElement() {
-    /** @inheritdoc */
-    override fun toString(): String = value
+  /** @inheritdoc */
+  override fun toString(): String = value
 }
 
 /**
@@ -97,12 +96,12 @@ data class IdentifierValueElement(
  * @property value The value, as a [List].
  */
 data class ListValueElement(
-        override val location: Location,
-        override val thriftText: String,
-        val value: List<ConstValueElement>
+    override val location: Location,
+    override val thriftText: String,
+    val value: List<ConstValueElement>
 ) : ConstValueElement() {
-    /** @inheritdoc */
-    override fun toString(): String = "$value"
+  /** @inheritdoc */
+  override fun toString(): String = "$value"
 }
 
 /**
@@ -111,10 +110,10 @@ data class ListValueElement(
  * @property value The value, as a [Map].
  */
 data class MapValueElement(
-        override val location: Location,
-        override val thriftText: String,
-        val value: Map<ConstValueElement, ConstValueElement>
+    override val location: Location,
+    override val thriftText: String,
+    val value: Map<ConstValueElement, ConstValueElement>
 ) : ConstValueElement() {
-    /** @inheritdoc */
-    override fun toString(): String = "$value"
+  /** @inheritdoc */
+  override fun toString(): String = "$value"
 }

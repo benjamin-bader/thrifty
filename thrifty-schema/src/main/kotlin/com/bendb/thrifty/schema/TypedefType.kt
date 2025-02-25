@@ -25,97 +25,85 @@ import com.bendb.thrifty.schema.parser.TypeElement
 import com.bendb.thrifty.schema.parser.TypedefElement
 import java.util.Objects
 
-/**
- * Represents a `typedef` alias defined in a .thrift file.
- */
-class TypedefType internal constructor(
-        mixin: UserElementMixin,
-        private val oldTypeElement: TypeElement,
-        private var oldType_: ThriftType? = null
+/** Represents a `typedef` alias defined in a .thrift file. */
+class TypedefType
+internal constructor(
+    mixin: UserElementMixin,
+    private val oldTypeElement: TypeElement,
+    private var oldType_: ThriftType? = null
 ) : UserType(mixin) {
 
-    /**
-     * The aliased type
-     */
-    val oldType: ThriftType
-        get() = oldType_!!
+  /** The aliased type */
+  val oldType: ThriftType
+    get() = oldType_!!
 
-    internal constructor(element: TypedefElement, namespaces: Map<NamespaceScope, String>, oldType: ThriftType? = null)
-            : this(UserElementMixin(element, namespaces), element.oldType, oldType)
+  internal constructor(
+      element: TypedefElement,
+      namespaces: Map<NamespaceScope, String>,
+      oldType: ThriftType? = null
+  ) : this(UserElementMixin(element, namespaces), element.oldType, oldType)
 
-    private constructor(builder: Builder)
-            : this(builder.mixin, builder.oldTypeElement, builder.oldType)
+  private constructor(
+      builder: Builder
+  ) : this(builder.mixin, builder.oldTypeElement, builder.oldType)
 
-    internal fun link(linker: Linker) {
-        this.oldType_ = linker.resolveType(oldTypeElement)
+  internal fun link(linker: Linker) {
+    this.oldType_ = linker.resolveType(oldTypeElement)
+  }
+
+  internal fun validate(linker: Linker) {
+    if (oldType_!!.isService) {
+      linker.addError(location, "Cannot declare a typedef of a service")
     }
 
-    internal fun validate(linker: Linker) {
-        if (oldType_!!.isService) {
-            linker.addError(location, "Cannot declare a typedef of a service")
-        }
-
-        if (oldType_ == BuiltinType.VOID) {
-            linker.addError(location, "Cannot declare a typedef of void")
-        }
-
-        // We've already validated that this is not part of an unresolvable
-        // cycle of typedefs (e.g. A -> B -> C -> A) during linking; this
-        // happens in Linker#resolveTypedefs().
+    if (oldType_ == BuiltinType.VOID) {
+      linker.addError(location, "Cannot declare a typedef of void")
     }
 
-    override val isTypedef: Boolean = true
+    // We've already validated that this is not part of an unresolvable
+    // cycle of typedefs (e.g. A -> B -> C -> A) during linking; this
+    // happens in Linker#resolveTypedefs().
+  }
 
-    override val trueType: ThriftType
-        get() = oldType.trueType
+  override val isTypedef: Boolean = true
 
-    override fun <T> accept(visitor: ThriftType.Visitor<T>): T = visitor.visitTypedef(this)
+  override val trueType: ThriftType
+    get() = oldType.trueType
 
-    override fun withAnnotations(annotations: Map<String, String>): ThriftType {
-        return toBuilder()
-                .annotations(mergeAnnotations(this.annotations, annotations))
-                .build()
+  override fun <T> accept(visitor: ThriftType.Visitor<T>): T = visitor.visitTypedef(this)
+
+  override fun withAnnotations(annotations: Map<String, String>): ThriftType {
+    return toBuilder().annotations(mergeAnnotations(this.annotations, annotations)).build()
+  }
+
+  /** Creates a [Builder] initialized with this type's values. */
+  fun toBuilder(): Builder = Builder(this)
+
+  override fun equals(other: Any?): Boolean {
+    if (!super.equals(other)) return false
+    if (other !is TypedefType) return false
+
+    return this.oldTypeElement == other.oldTypeElement
+  }
+
+  override fun hashCode(): Int {
+    return Objects.hash(super.hashCode(), oldTypeElement)
+  }
+
+  /** An object that can create new [TypedefType] instances */
+  class Builder internal constructor(typedef: TypedefType) :
+      UserType.UserTypeBuilder<TypedefType, Builder>(typedef) {
+    internal var oldTypeElement: TypeElement = typedef.oldTypeElement
+    internal var oldType: ThriftType? = typedef.oldType
+
+    /** Use the given [oldTypeElement] for the typedef under construction. */
+    fun oldTypeElement(oldTypeElement: TypeElement): Builder = apply {
+      this.oldTypeElement = oldTypeElement
     }
 
-    /**
-     * Creates a [Builder] initialized with this type's values.
-     */
-    fun toBuilder(): Builder = Builder(this)
+    /** Use the given [oldType] for the typedef under construction. */
+    fun oldType(oldType: ThriftType): Builder = apply { this.oldType = oldType }
 
-    override fun equals(other: Any?): Boolean {
-        if (!super.equals(other)) return false
-        if (other !is TypedefType) return false
-
-        return this.oldTypeElement == other.oldTypeElement
-    }
-
-    override fun hashCode(): Int {
-        return Objects.hash(super.hashCode(), oldTypeElement)
-    }
-
-    /**
-     * An object that can create new [TypedefType] instances
-     */
-    class Builder internal constructor(
-            typedef: TypedefType
-    ) : UserType.UserTypeBuilder<TypedefType, Builder>(typedef) {
-        internal var oldTypeElement: TypeElement = typedef.oldTypeElement
-        internal var oldType: ThriftType? = typedef.oldType
-
-        /**
-         * Use the given [oldTypeElement] for the typedef under construction.
-         */
-        fun oldTypeElement(oldTypeElement: TypeElement): Builder = apply {
-            this.oldTypeElement = oldTypeElement
-        }
-
-        /**
-         * Use the given [oldType] for the typedef under construction.
-         */
-        fun oldType(oldType: ThriftType): Builder = apply {
-            this.oldType = oldType
-        }
-
-        override fun build(): TypedefType = TypedefType(this)
-    }
+    override fun build(): TypedefType = TypedefType(this)
+  }
 }

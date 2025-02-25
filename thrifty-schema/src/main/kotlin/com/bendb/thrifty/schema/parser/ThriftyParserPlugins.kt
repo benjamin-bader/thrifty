@@ -24,74 +24,60 @@ package com.bendb.thrifty.schema.parser
 import java.util.UUID
 
 /**
- * An extension point for controlling UUID assignment to parsed Thrift entities
- * during unit tests or as part of a larger pipeline.
+ * An extension point for controlling UUID assignment to parsed Thrift entities during unit tests or
+ * as part of a larger pipeline.
  */
 object ThriftyParserPlugins {
-    private val DEFAULT_UUID_PROVIDER: UUIDProvider = object : UUIDProvider {
+  private val DEFAULT_UUID_PROVIDER: UUIDProvider =
+      object : UUIDProvider {
         override fun call(): UUID = UUID.randomUUID()
+      }
+
+  @Volatile private var uuidProvider = DEFAULT_UUID_PROVIDER
+
+  /** Prevents changing the plugins. */
+  @Volatile private var lockdown: Boolean = false
+
+  /**
+   * Prevents changing the plugins from then on.
+   *
+   * This allows container-like environments to prevent client messing with plugins.
+   */
+  fun lockdown() {
+    lockdown = true
+  }
+
+  /**
+   * Returns true if the plugins were locked down.
+   *
+   * @return true if the plugins were locked down
+   */
+  fun isLockdown(): Boolean {
+    return lockdown
+  }
+
+  /** @param uuidProvider the provider to use for generating [UUID]s for elements. */
+  fun setUUIDProvider(uuidProvider: UUIDProvider) {
+    if (lockdown) {
+      throw IllegalStateException("Plugins can't be changed anymore")
     }
+    ThriftyParserPlugins.uuidProvider = uuidProvider
+  }
 
-    @Volatile
-    private var uuidProvider = DEFAULT_UUID_PROVIDER
+  /** @return a [UUID] as dictated by the current [UUIDProvider]. Default is random UUIDs. */
+  fun createUUID(): UUID {
+    return uuidProvider.call()
+  }
 
-    /**
-     * Prevents changing the plugins.
-     */
-    @Volatile
-    private var lockdown: Boolean = false
+  /** Resets the current [UUIDProvider] to the default, random, UUID provider. */
+  fun reset() {
+    uuidProvider = DEFAULT_UUID_PROVIDER
+  }
 
-    /**
-     * Prevents changing the plugins from then on.
-     *
-     *
-     * This allows container-like environments to prevent client messing with plugins.
-     */
-    fun lockdown() {
-        lockdown = true
-    }
+  /** A simple provider interface for creating [UUID]s. */
+  interface UUIDProvider {
 
-    /**
-     * Returns true if the plugins were locked down.
-     *
-     * @return true if the plugins were locked down
-     */
-    fun isLockdown(): Boolean {
-        return lockdown
-    }
-
-    /**
-     * @param uuidProvider the provider to use for generating [UUID]s for elements.
-     */
-    fun setUUIDProvider(uuidProvider: UUIDProvider) {
-        if (lockdown) {
-            throw IllegalStateException("Plugins can't be changed anymore")
-        }
-        ThriftyParserPlugins.uuidProvider = uuidProvider
-    }
-
-    /**
-     * @return a [UUID] as dictated by the current [UUIDProvider]. Default is random UUIDs.
-     */
-    fun createUUID(): UUID {
-        return uuidProvider.call()
-    }
-
-    /**
-     * Resets the current [UUIDProvider] to the default, random, UUID provider.
-     */
-    fun reset() {
-        uuidProvider = DEFAULT_UUID_PROVIDER
-    }
-
-    /**
-     * A simple provider interface for creating [UUID]s.
-     */
-    interface UUIDProvider {
-
-        /**
-         * @return a [UUID].
-         */
-        fun call(): UUID
-    }
+    /** @return a [UUID]. */
+    fun call(): UUID
+  }
 }

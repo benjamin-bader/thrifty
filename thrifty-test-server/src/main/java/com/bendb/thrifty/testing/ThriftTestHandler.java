@@ -24,34 +24,25 @@ package com.bendb.thrifty.testing;
 import com.bendb.thrifty.test.gen.HasUnion;
 import com.bendb.thrifty.test.gen.Insanity;
 import com.bendb.thrifty.test.gen.NonEmptyUnion;
-import com.bendb.thrifty.test.gen.ThriftTest.Iface;
-import com.bendb.thrifty.test.gen.UnionWithDefault;
-import com.bendb.thrifty.test.gen.Xception;
-import com.bendb.thrifty.test.gen.Xception2;
-import com.bendb.thrifty.test.gen.Xtruct2;
-import com.bendb.thrifty.test.gen.HasUnion;
-import com.bendb.thrifty.test.gen.Insanity;
-import com.bendb.thrifty.test.gen.NonEmptyUnion;
 import com.bendb.thrifty.test.gen.Numberz;
-import com.bendb.thrifty.test.gen.ThriftTest;
+import com.bendb.thrifty.test.gen.ThriftTest.Iface;
 import com.bendb.thrifty.test.gen.UnionWithDefault;
 import com.bendb.thrifty.test.gen.Xception;
 import com.bendb.thrifty.test.gen.Xception2;
 import com.bendb.thrifty.test.gen.Xtruct;
 import com.bendb.thrifty.test.gen.Xtruct2;
-import org.apache.commons.codec.binary.Hex;
-import org.apache.thrift.TException;
-
 import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.thrift.TException;
 
 /**
- * An implementation of the ThriftTest service, whose semantics are defined
- * in the documentation comments of ThriftTest.thrift.
+ * An implementation of the ThriftTest service, whose semantics are defined in the documentation comments of
+ * ThriftTest.thrift.
  */
 public class ThriftTestHandler implements Iface {
     private final PrintStream out;
@@ -213,7 +204,8 @@ public class ThriftTestHandler implements Iface {
     }
 
     @Override
-    public Xtruct testMulti(byte arg0, int arg1, long arg2, Map<Short, String> arg3, Numberz arg4, long arg5) throws TException {
+    public Xtruct testMulti(byte arg0, int arg1, long arg2, Map<Short, String> arg3, Numberz arg4, long arg5)
+            throws TException {
         out.println("testMulti()");
         return new Xtruct("Hello2", arg0, arg1, arg2);
     }
@@ -246,9 +238,7 @@ public class ThriftTestHandler implements Iface {
     }
 
     @Override
-    public void testOneway(int secondsToSleep) throws TException {
-
-    }
+    public void testOneway(int secondsToSleep) throws TException {}
 
     @Override
     public HasUnion testUnionArgument(NonEmptyUnion arg0) throws TException {

@@ -30,12 +30,6 @@ import com.bendb.thrifty.schema.LoadFailedException;
 import com.bendb.thrifty.schema.Loader;
 import com.bendb.thrifty.schema.Schema;
 import com.squareup.kotlinpoet.FileSpec;
-import org.gradle.api.GradleException;
-import org.gradle.api.logging.configuration.ShowStacktrace;
-import org.gradle.workers.WorkAction;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -43,16 +37,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import org.gradle.api.GradleException;
+import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.workers.WorkAction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A {@link WorkAction} that actually generates the Thrifty sources.
  *
- * <p>We're doing this via the Worker API to ensure that Gradle's hard-coded Kotlin
- * version doesn't cause us grief.  Thrifty is entirely written in Kotlin, and
- * there's no guarantee that we'll be using a version compatible with whatever
- * Gradle happens to have bundled.  According to some of their engineers, this
- * (with classpath-level isolation) is the only safe way to use Kotlin in the context
- * of a Gradle plugin.
+ * <p>We're doing this via the Worker API to ensure that Gradle's hard-coded Kotlin version doesn't cause us grief.
+ * Thrifty is entirely written in Kotlin, and there's no guarantee that we'll be using a version compatible with
+ * whatever Gradle happens to have bundled. According to some of their engineers, this (with classpath-level isolation)
+ * is the only safe way to use Kotlin in the context of a Gradle plugin.
  */
 public abstract class GenerateThriftSourcesWorkAction implements WorkAction<GenerateThriftSourcesWorkParams> {
     private static final Logger LOGGER = LoggerFactory.getLogger(GenerateThriftSourcesWorkAction.class);
@@ -177,9 +174,12 @@ public abstract class GenerateThriftSourcesWorkAction implements WorkAction<Gene
 
     private static FieldNamingPolicy policyFromNameStyle(FieldNameStyle style) {
         switch (style) {
-            case DEFAULT: return FieldNamingPolicy.Companion.getDEFAULT();
-            case JAVA: return FieldNamingPolicy.Companion.getJAVA();
-            case PASCAL: return FieldNamingPolicy.Companion.getPASCAL();
+            case DEFAULT:
+                return FieldNamingPolicy.Companion.getDEFAULT();
+            case JAVA:
+                return FieldNamingPolicy.Companion.getJAVA();
+            case PASCAL:
+                return FieldNamingPolicy.Companion.getPASCAL();
         }
         throw new AssertionError("unpossible");
     }

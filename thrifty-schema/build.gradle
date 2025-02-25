@@ -51,6 +51,7 @@ def mainTaskNames = [
         'javaSourcesJar',
         'kotlinSourcesJar',
         'sourcesJar',
+        'spotlessJava',
         'dokkaHtml',
         'dokkaGeneratePublicationHtml',
 ].toSet()

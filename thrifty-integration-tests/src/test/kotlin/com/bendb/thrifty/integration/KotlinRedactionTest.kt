@@ -30,62 +30,52 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.contain
 import org.junit.jupiter.api.Test
-import java.util.Arrays
-import java.util.Collections
 
 class KotlinRedactionTest {
-    @Test
-    fun redaction() {
-        val hr = HasRedaction(
-            one = "value-one",
-            two = "should-not-appear",
-            three = "value-three"
-        )
+  @Test
+  fun redaction() {
+    val hr = HasRedaction(one = "value-one", two = "should-not-appear", three = "value-three")
 
-        "$hr" should contain("one=value-one")
-        "$hr" shouldNot contain("should-not-appear")
-        hr.two shouldBe "should-not-appear"
-    }
+    "$hr" should contain("one=value-one")
+    "$hr" shouldNot contain("should-not-appear")
+    hr.two shouldBe "should-not-appear"
+  }
 
-    @Test
-    fun obfuscation() {
-        val hr = HasRedaction(
-            one = "value-one",
-            two = "value-two",
-            three = "value-three"
-        )
+  @Test
+  fun obfuscation() {
+    val hr = HasRedaction(one = "value-one", two = "value-two", three = "value-three")
 
-        "$hr" should contain("three=6A39B242")
-        hr.three shouldBe "value-three"
-    }
+    "$hr" should contain("three=6A39B242")
+    hr.three shouldBe "value-three"
+  }
 
-    @Test
-    fun commentBasedRedaction() {
-        val hcbr = HasCommentBasedRedaction(foo = "bar")
+  @Test
+  fun commentBasedRedaction() {
+    val hcbr = HasCommentBasedRedaction(foo = "bar")
 
-        "$hcbr" shouldBe "HasCommentBasedRedaction(foo=<REDACTED>)"
-    }
+    "$hcbr" shouldBe "HasCommentBasedRedaction(foo=<REDACTED>)"
+  }
 
-    @Test
-    fun obfuscatedList() {
-        val oc = ObfuscatedCollections(numz = listOf(1, 2, 3))
+  @Test
+  fun obfuscatedList() {
+    val oc = ObfuscatedCollections(numz = listOf(1, 2, 3))
 
-        "$oc" should contain("numz=list<i32>(size=3)")
-    }
+    "$oc" should contain("numz=list<i32>(size=3)")
+  }
 
-    @Test
-    fun obfuscatedMap() {
-        val oc = ObfuscatedCollections(stringz = mapOf("foo" to "bar"))
+  @Test
+  fun obfuscatedMap() {
+    val oc = ObfuscatedCollections(stringz = mapOf("foo" to "bar"))
 
-        "$oc" should contain("stringz=map<string, string>(size=1)")
-    }
+    "$oc" should contain("stringz=map<string, string>(size=1)")
+  }
 
-    @Test
-    fun obfuscatedString() {
-        var ho = HasObfuscation(ssn = null)
-        "$ho" shouldBe "HasObfuscation(ssn=null)"
+  @Test
+  fun obfuscatedString() {
+    var ho = HasObfuscation(ssn = null)
+    "$ho" shouldBe "HasObfuscation(ssn=null)"
 
-        ho = HasObfuscation(ssn = "123-45-6789")
-        "$ho" shouldBe "HasObfuscation(ssn=1E1DB4B3)"
-    }
+    ho = HasObfuscation(ssn = "123-45-6789")
+    "$ho" shouldBe "HasObfuscation(ssn=1E1DB4B3)"
+  }
 }

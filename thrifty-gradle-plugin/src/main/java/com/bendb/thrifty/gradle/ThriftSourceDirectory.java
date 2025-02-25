@@ -27,9 +27,7 @@ package com.bendb.thrifty.gradle;
  * <p>Pattern syntax is as in {@link org.gradle.api.tasks.util.PatternFilterable}.
  */
 public interface ThriftSourceDirectory {
-    /**
-     * Includes all files described by the given pattern.
-     */
+    /** Includes all files described by the given pattern. */
     void include(String pattern);
 
     /**

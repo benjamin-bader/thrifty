@@ -21,6 +21,7 @@
  */
 package com.bendb.thrifty
 
+import com.diffplug.gradle.spotless.SpotlessExtension
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -38,6 +39,7 @@ class ThriftyJavaPlugin : Plugin<Project> {
         applyLibrarySettings(project)
         applyJavaSettings(project)
         configureTestTasks(project)
+        configureSpotless(project)
     }
 
     private fun applyBasePlugins(project: Project) {
@@ -94,6 +96,22 @@ class ThriftyJavaPlugin : Plugin<Project> {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    private fun configureSpotless(project: Project) {
+        val generatedCode = project.layout.buildDirectory.asFileTree.matching {
+            it.include("generated/**/*.java")
+            it.include("generated-src/**/*.java") // antlr
+        }
+
+        project.plugins.apply(Plugins.SPOTLESS)
+        project.extensions.configure(SpotlessExtension::class.java) { ext ->
+            ext.java {
+                it.palantirJavaFormat().formatJavadoc(true)
+                it.removeUnusedImports()
+                it.targetExclude(generatedCode)
             }
         }
     }

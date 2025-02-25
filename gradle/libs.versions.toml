@@ -4,6 +4,7 @@ coroutines = "1.9.0"
 junit = "5.10.0"
 kotest = "5.9.1"
 kotlin = "2.0.21"
+ktfmt = "0.54"
 ktor = "3.0.1"
 okio = "3.9.1"
 
@@ -25,6 +26,7 @@ ktor-network = { module = "io.ktor:ktor-network", version.ref = "ktor" }
 ktor-networkTls = { module = "io.ktor:ktor-network-tls", version.ref = "ktor" }
 mavenPublishPlugin = "com.vanniktech:gradle-maven-publish-plugin:0.30.0"
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
+spotlessPlugin = { module = "com.diffplug.spotless:spotless-plugin-gradle", version = "7.0.2" }
 
 junit = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
 junitApi = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }

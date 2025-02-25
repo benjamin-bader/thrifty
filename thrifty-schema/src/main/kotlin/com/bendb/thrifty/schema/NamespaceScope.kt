@@ -22,144 +22,99 @@
 package com.bendb.thrifty.schema
 
 /**
- * An enumeration of all namespace-having programming languages recognized by
- * Thrifty.
+ * An enumeration of all namespace-having programming languages recognized by Thrifty.
  *
- * Most scopes in this enumeration are irrelevant to Thrifty, but are specified
- * by Thrift and so are included to retain fidelity.  Scopes relevant to
- * Thrifty are [ALL], [JAVA], and [KOTLIN].
+ * Most scopes in this enumeration are irrelevant to Thrifty, but are specified by Thrift and so are
+ * included to retain fidelity. Scopes relevant to Thrifty are [ALL], [JAVA], and [KOTLIN].
  */
 enum class NamespaceScope(internal val thriftName: String) {
-    /**
-     * Represents all languages; often used as a fallback value.
-     */
-    ALL("*"),
+  /** Represents all languages; often used as a fallback value. */
+  ALL("*"),
 
-    /**
-     * Represents a C++ namespace scope.
-     */
-    CPP("cpp"),
+  /** Represents a C++ namespace scope. */
+  CPP("cpp"),
 
-    /**
-     * Represents a Java namespace scope.
-     *
-     * Usually redundant with [KOTLIN] or [JVM], but is available for use in those cases
-     * where generated Java code should not share a namespace with generated
-     * Kotlin code.
-     */
-    JAVA("java"),
+  /**
+   * Represents a Java namespace scope.
+   *
+   * Usually redundant with [KOTLIN] or [JVM], but is available for use in those cases where
+   * generated Java code should not share a namespace with generated Kotlin code.
+   */
+  JAVA("java"),
 
-    /**
-     * Represents a Python namespace scope.
-     */
-    PY("py"),
+  /** Represents a Python namespace scope. */
+  PY("py"),
 
-    /**
-     * Represents a Python namespace scope, specifically for Twisted.
-     */
-    PY_TWISTED("py.twisted"),
+  /** Represents a Python namespace scope, specifically for Twisted. */
+  PY_TWISTED("py.twisted"),
 
-    /**
-     * Represents a Perl namespace scope.
-     */
-    PERL("perl"),
+  /** Represents a Perl namespace scope. */
+  PERL("perl"),
 
-    /**
-     * Represents a Ruby namespace scope.
-     */
-    RB("rb"),
+  /** Represents a Ruby namespace scope. */
+  RB("rb"),
 
-    /**
-     * Represents an Objective-C namespace scope.
-     */
-    COCOA("cocoa"),
+  /** Represents an Objective-C namespace scope. */
+  COCOA("cocoa"),
 
-    /**
-     * Represents a C# namespace scope.
-     */
-    CSHARP("csharp"),
+  /** Represents a C# namespace scope. */
+  CSHARP("csharp"),
 
-    /**
-     * Represents a PHP namespace scope.
-     */
-    PHP("php"),
+  /** Represents a PHP namespace scope. */
+  PHP("php"),
 
-    /**
-     * Represents a Smalltalk Category.
-     */
-    SMALLTALK_CATEGORY("smalltalk.category"),
+  /** Represents a Smalltalk Category. */
+  SMALLTALK_CATEGORY("smalltalk.category"),
 
-    /**
-     * Represents a Smalltalk prefix.
-     */
-    SMALLTALK_PREFIX("smalltalk.prefix"),
+  /** Represents a Smalltalk prefix. */
+  SMALLTALK_PREFIX("smalltalk.prefix"),
 
-    /**
-     * Represents a CGLIB scope.  I'm not sure what this is.
-     */
-    C_GLIB("cglib"),
+  /** Represents a CGLIB scope. I'm not sure what this is. */
+  C_GLIB("cglib"),
 
-    /**
-     * Represents a Go namespace scope.
-     */
-    GO("go"),
+  /** Represents a Go namespace scope. */
+  GO("go"),
 
-    /**
-     * Represents a Lua namespace scope.
-     */
-    LUA("lua"),
+  /** Represents a Lua namespace scope. */
+  LUA("lua"),
 
-    /**
-     * Represents a Smalltalk namespace scope.
-     */
-    ST("st"),
+  /** Represents a Smalltalk namespace scope. */
+  ST("st"),
 
-    /**
-     * Represents a Delphi namespace scope.
-     */
-    DELPHI("delphi"),
+  /** Represents a Delphi namespace scope. */
+  DELPHI("delphi"),
 
-    /**
-     * Represents a Javascript namespace scope.
-     */
-    JAVASCRIPT("js"),
+  /** Represents a Javascript namespace scope. */
+  JAVASCRIPT("js"),
 
-    /**
-     * Represents a namespace scope for an unknown or unrecognized language.
-     */
-    UNKNOWN("none"),
+  /** Represents a namespace scope for an unknown or unrecognized language. */
+  UNKNOWN("none"),
 
-    /**
-     * Represents a Kotlin namespace scope.
-     *
-     * Usually redundant with [JAVA] or [JVM], but is available for use in those cases
-     * where generated Kotlin code should not share a namespace with generated
-     * Java code.
-     */
-    KOTLIN("kt"),
+  /**
+   * Represents a Kotlin namespace scope.
+   *
+   * Usually redundant with [JAVA] or [JVM], but is available for use in those cases where generated
+   * Kotlin code should not share a namespace with generated Java code.
+   */
+  KOTLIN("kt"),
 
-    /**
-     * Represents a JVM namespace scope.
-     */
-    JVM("jvm");
+  /** Represents a JVM namespace scope. */
+  JVM("jvm");
 
-    companion object {
-        /**
-         * Returns the [NamespaceScope] identified by the given [name], or null
-         * if no such scope exists.
-         */
-        fun forThriftName(name: String): NamespaceScope? {
-            for (scope in values()) {
-                if (scope.thriftName == name) {
-                    return scope
-                }
-            }
-            return null
+  companion object {
+    /**
+     * Returns the [NamespaceScope] identified by the given [name], or null if no such scope exists.
+     */
+    fun forThriftName(name: String): NamespaceScope? {
+      for (scope in values()) {
+        if (scope.thriftName == name) {
+          return scope
         }
-
-        /**
-         * @return a [Set] of all the members that are [JVM] sub-types.
-         */
-        fun jvmMembers() = setOf(JAVA, KOTLIN)
+      }
+      return null
     }
+
+    /** @return a [Set] of all the members that are [JVM] sub-types. */
+    fun jvmMembers() = setOf(JAVA, KOTLIN)
+  }
 }

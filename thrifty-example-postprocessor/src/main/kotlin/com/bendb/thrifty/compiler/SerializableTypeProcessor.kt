@@ -27,27 +27,27 @@ import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import java.io.Serializable
 
-/**
- * An example [KotlinTypeProcessor] that implements [Serializable]
- * for all generated types.
- */
+/** An example [KotlinTypeProcessor] that implements [Serializable] for all generated types. */
 class SerializableTypeProcessor : TypeProcessor {
-    override fun process(spec: TypeSpec): TypeSpec? {
-        return spec.toBuilder().run {
-            addSuperinterface(Serializable::class)
+  override fun process(spec: TypeSpec): TypeSpec? {
+    return spec.toBuilder().run {
+      addSuperinterface(Serializable::class)
 
-            // Static fields in Kotlin go in a companion object;
-            // we'll assume here that `spec` does not already
-            // have one.
-            val companionType = TypeSpec.companionObjectBuilder()
-                    .addProperty(PropertySpec.builder("serialVersionUID", Long::class)
-                            .addModifiers(KModifier.PRIVATE, KModifier.CONST) // const vals in companions are static
-                            .initializer("%L", -1L)
-                            .build())
-                    .build()
+      // Static fields in Kotlin go in a companion object;
+      // we'll assume here that `spec` does not already
+      // have one.
+      val companionType =
+          TypeSpec.companionObjectBuilder()
+              .addProperty(
+                  PropertySpec.builder("serialVersionUID", Long::class)
+                      .addModifiers(
+                          KModifier.PRIVATE, KModifier.CONST) // const vals in companions are static
+                      .initializer("%L", -1L)
+                      .build())
+              .build()
 
-            addType(companionType)
-            build()
-        }
+      addType(companionType)
+      build()
     }
+  }
 }

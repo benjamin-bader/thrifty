@@ -22,7 +22,10 @@
 package com.bendb.thrifty.testing;
 
 import com.bendb.thrifty.test.gen.ThriftTest.Processor;
-import com.bendb.thrifty.test.gen.ThriftTest;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.thrift.TProcessor;
@@ -42,14 +45,7 @@ import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-public class TestServer implements Extension,
-        BeforeAllCallback,
-        AfterAllCallback {
+public class TestServer implements Extension, BeforeAllCallback, AfterAllCallback {
     private static final Logger LOG = Logger.getLogger(TestServer.class.getName());
 
     private ServerProtocol protocol;
@@ -157,8 +153,10 @@ public class TestServer implements Extension,
 
     private TServerTransport getServerTransport() {
         switch (transport) {
-            case BLOCKING: return getBlockingServerTransport();
-            case NON_BLOCKING: return getNonBlockingServerTransport();
+            case BLOCKING:
+                return getBlockingServerTransport();
+            case NON_BLOCKING:
+                return getNonBlockingServerTransport();
             default:
                 throw new AssertionError("Invalid transport type: " + transport);
         }
@@ -168,8 +166,8 @@ public class TestServer implements Extension,
         try {
             InetAddress localhost = InetAddress.getByName("localhost");
             InetSocketAddress socketAddress = new InetSocketAddress(localhost, 0);
-            TServerSocket.ServerSocketTransportArgs args = new TServerSocket.ServerSocketTransportArgs()
-                    .bindAddr(socketAddress);
+            TServerSocket.ServerSocketTransportArgs args =
+                    new TServerSocket.ServerSocketTransportArgs().bindAddr(socketAddress);
 
             return new TServerSocket(args);
         } catch (Exception e) {
@@ -190,9 +188,12 @@ public class TestServer implements Extension,
 
     private TProtocolFactory getProtocolFactory() {
         switch (protocol) {
-            case BINARY: return new TBinaryProtocol.Factory();
-            case COMPACT: return new TCompactProtocol.Factory();
-            case JSON: return new TJSONProtocol.Factory();
+            case BINARY:
+                return new TBinaryProtocol.Factory();
+            case COMPACT:
+                return new TCompactProtocol.Factory();
+            case JSON:
+                return new TJSONProtocol.Factory();
             default:
                 throw new AssertionError("Invalid protocol value: " + protocol);
         }
@@ -200,17 +201,18 @@ public class TestServer implements Extension,
 
     private TServer startServer(TProcessor processor, TProtocolFactory protocolFactory) {
         switch (transport) {
-            case BLOCKING: return startBlockingServer(processor, protocolFactory);
-            case NON_BLOCKING: return startNonblockingServer(processor, protocolFactory);
+            case BLOCKING:
+                return startBlockingServer(processor, protocolFactory);
+            case NON_BLOCKING:
+                return startNonblockingServer(processor, protocolFactory);
             default:
                 throw new AssertionError("Invalid transport type: " + transport);
         }
     }
 
     private TServer startBlockingServer(TProcessor processor, TProtocolFactory protocolFactory) {
-        TThreadPoolServer.Args args = new TThreadPoolServer.Args(serverTransport)
-                .processor(processor)
-                .protocolFactory(protocolFactory);
+        TThreadPoolServer.Args args =
+                new TThreadPoolServer.Args(serverTransport).processor(processor).protocolFactory(protocolFactory);
 
         return new TThreadPoolServer(args);
     }

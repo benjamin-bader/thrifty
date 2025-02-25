@@ -28,89 +28,81 @@ import java.nio.file.Paths
  * @property line The line number identified by this object, starting with 1.
  * @property column The column identified by this object, starting with 1.
  */
-class Location private constructor(
-        val base: String,
-        val path: String,
-        val line: Int,
-        val column: Int
-) {
-    init {
-        require(line > 0 || line == -1) { "line: $line" }
-        require(column > 0 || column == -1) { "column: $column"}
+class Location
+private constructor(val base: String, val path: String, val line: Int, val column: Int) {
+  init {
+    require(line > 0 || line == -1) { "line: $line" }
+    require(column > 0 || column == -1) { "column: $column" }
+  }
+
+  /**
+   * Computes and returns the Thrift 'program' name, which is the filename portion of the full path
+   * *without* the .thrift extension.
+   *
+   * @return the Thrift program name representing this file.
+   */
+  val programName: String
+    get() {
+      var name = Paths.get(path).fileName.toString()
+      val dotIndex = name.lastIndexOf('.')
+      if (dotIndex != -1) {
+        name = name.substring(0, dotIndex)
+      }
+      return name
     }
 
-    /**
-     * Computes and returns the Thrift 'program' name, which is the filename portion
-     * of the full path *without* the .thrift extension.
-     *
-     * @return the Thrift program name representing this file.
-     */
-    val programName: String
-        get() {
-            var name = Paths.get(path).fileName.toString()
-            val dotIndex = name.lastIndexOf('.')
-            if (dotIndex != -1) {
-                name = name.substring(0, dotIndex)
-            }
-            return name
-        }
+  val asPath: Path
+    get() = Paths.get(base, path)
 
-    val asPath: Path
-        get() = Paths.get(base, path)
+  /** Returns a copy of this object pointing to the given line and column. */
+  fun at(line: Int, column: Int): Location {
+    return Location(base, path, line, column)
+  }
 
-    /**
-     * Returns a copy of this object pointing to the given line and column.
-     */
-    fun at(line: Int, column: Int): Location {
-        return Location(base, path, line, column)
+  /** @inheritdoc */
+  override fun toString(): String {
+    val sb = StringBuilder(base.length + path.length)
+    if (!base.isEmpty()) {
+      sb.append(base).append(File.separator)
+    }
+    sb.append(path)
+    if (line != -1) {
+      sb.append(": (").append(line)
+      if (column != -1) {
+        sb.append(", ").append(column)
+      }
+      sb.append(")")
+    }
+    return sb.toString()
+  }
+
+  /** @inheritdoc */
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (other is Location) {
+      val location = other as Location?
+
+      if (line != location!!.line) return false
+      if (column != location.column) return false
+      return if (base != location.base) false else path == location.path
     }
 
-    /** @inheritdoc */
-    override fun toString(): String {
-        val sb = StringBuilder(base.length + path.length)
-        if (!base.isEmpty()) {
-            sb.append(base).append(File.separator)
-        }
-        sb.append(path)
-        if (line != -1) {
-            sb.append(": (").append(line)
-            if (column != -1) {
-                sb.append(", ").append(column)
-            }
-            sb.append(")")
-        }
-        return sb.toString()
+    return false
+  }
+
+  /** @inheritdoc */
+  override fun hashCode(): Int {
+    var result = base.hashCode()
+    result = 31 * result + path.hashCode()
+    result = 31 * result + line
+    result = 31 * result + column
+    return result
+  }
+
+  companion object {
+    /** Creates a [Location] pointing to the given [base] and [path]. */
+    fun get(base: String, path: String): Location {
+      return Location(base, path, -1, -1)
     }
-
-    /** @inheritdoc */
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other is Location) {
-            val location = other as Location?
-
-            if (line != location!!.line) return false
-            if (column != location.column) return false
-            return if (base != location.base) false else path == location.path
-        }
-
-        return false
-    }
-
-    /** @inheritdoc */
-    override fun hashCode(): Int {
-        var result = base.hashCode()
-        result = 31 * result + path.hashCode()
-        result = 31 * result + line
-        result = 31 * result + column
-        return result
-    }
-
-    companion object {
-        /**
-         * Creates a [Location] pointing to the given [base] and [path].
-         */
-        fun get(base: String, path: String): Location {
-            return Location(base, path, -1, -1)
-        }
-    }
+  }
 }

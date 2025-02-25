@@ -31,91 +31,86 @@ import com.bendb.thrifty.transport.Transport
 import com.sun.net.httpserver.HttpContext
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
+import java.net.InetSocketAddress
+import java.util.concurrent.Executors
 import kotlinx.coroutines.runBlocking
 import okio.Buffer
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.Extension
 import org.junit.jupiter.api.extension.ExtensionContext
-import java.net.InetSocketAddress
-import java.util.concurrent.Executors
 
+class TestServer(private val protocol: ServerProtocol = ServerProtocol.BINARY) :
+    Extension, BeforeEachCallback, AfterEachCallback {
+  val processor = ThriftTestProcessor(ThriftTestHandler())
+  private var server: HttpServer? = null
 
-class TestServer(private val protocol: ServerProtocol = ServerProtocol.BINARY) : Extension, BeforeEachCallback,
-    AfterEachCallback {
-    val processor = ThriftTestProcessor(ThriftTestHandler())
-    private var server: HttpServer? = null
+  class TestTransport(val b: Buffer = Buffer()) : Transport {
 
-    class TestTransport(
-        val b: Buffer = Buffer()
-    ) : Transport {
+    override suspend fun read(buffer: ByteArray, offset: Int, count: Int) =
+        b.read(buffer, offset, count)
 
-        override suspend fun read(buffer: ByteArray, offset: Int, count: Int) = b.read(buffer, offset, count)
+    override suspend fun write(buffer: ByteArray, offset: Int, count: Int) {
+      b.write(buffer, offset, count)
+    }
 
-        override suspend fun write(buffer: ByteArray, offset: Int, count: Int) {
-            b.write(buffer, offset, count)
+    override suspend fun flush() = b.flush()
+
+    override fun close() = b.close()
+  }
+
+  private fun handleRequest(exchange: HttpExchange) {
+    val inputTransport = TestTransport(Buffer().readFrom(exchange.requestBody))
+    val outputTransport = TestTransport()
+
+    val input = protocolFactory(inputTransport)
+    val output = protocolFactory(outputTransport)
+
+    runBlocking { processor.process(input, output) }
+
+    exchange.sendResponseHeaders(200, outputTransport.b.size)
+    exchange.responseBody.use { outputTransport.b.writeTo(it) }
+  }
+
+  fun run() {
+    server =
+        HttpServer.create(InetSocketAddress("localhost", 0), 0).apply {
+          val context: HttpContext = createContext("/")
+          context.setHandler(::handleRequest)
+
+          executor = Executors.newSingleThreadExecutor()
+          start()
         }
+  }
 
-        override suspend fun flush() = b.flush()
+  fun port(): Int {
+    return server!!.address.port
+  }
 
-        override fun close() = b.close()
+  override fun beforeEach(context: ExtensionContext) {
+    run()
+  }
+
+  override fun afterEach(context: ExtensionContext) {
+    cleanupServer()
+  }
+
+  fun close() {
+    cleanupServer()
+  }
+
+  private fun cleanupServer() {
+    server?.let {
+      it.stop(0)
+      server = null
     }
+  }
 
-    private fun handleRequest(exchange: HttpExchange) {
-        val inputTransport = TestTransport(Buffer().readFrom(exchange.requestBody))
-        val outputTransport = TestTransport()
-
-        val input = protocolFactory(inputTransport)
-        val output = protocolFactory(outputTransport)
-
-        runBlocking {
-            processor.process(input, output)
-        }
-
-        exchange.sendResponseHeaders(200, outputTransport.b.size)
-        exchange.responseBody.use {
-            outputTransport.b.writeTo(it)
-        }
-    }
-
-    fun run() {
-        server = HttpServer.create(InetSocketAddress("localhost", 0), 0).apply {
-            val context: HttpContext = createContext("/")
-            context.setHandler(::handleRequest)
-
-            executor = Executors.newSingleThreadExecutor()
-            start()
-        }
-    }
-
-    fun port(): Int {
-        return server!!.address.port
-    }
-
-    override fun beforeEach(context: ExtensionContext) {
-        run()
-    }
-
-    override fun afterEach(context: ExtensionContext) {
-        cleanupServer()
-    }
-
-    fun close() {
-        cleanupServer()
-    }
-
-    private fun cleanupServer() {
-        server?.let {
-            it.stop(0)
-            server = null
-        }
-    }
-
-    private fun protocolFactory(transport: Transport): Protocol = when (protocol) {
+  private fun protocolFactory(transport: Transport): Protocol =
+      when (protocol) {
         ServerProtocol.BINARY -> BinaryProtocol(transport)
         ServerProtocol.COMPACT -> CompactProtocol(transport)
         ServerProtocol.JSON -> JsonProtocol(transport)
         else -> throw AssertionError("Invalid protocol value: $protocol")
-    }
-
+      }
 }
