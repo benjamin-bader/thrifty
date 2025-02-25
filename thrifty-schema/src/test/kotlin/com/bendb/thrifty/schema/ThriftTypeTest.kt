@@ -22,96 +22,81 @@
 package com.bendb.thrifty.schema
 
 import io.kotest.matchers.shouldBe
-import org.junit.jupiter.api.Test
-
 import java.util.Collections
 import java.util.concurrent.atomic.AtomicInteger
+import org.junit.jupiter.api.Test
 
 class ThriftTypeTest {
-    @Test
-    fun byteAndI8AreSynonyms() {
-        val ctr = AtomicInteger(0)
+  @Test
+  fun byteAndI8AreSynonyms() {
+    val ctr = AtomicInteger(0)
 
-        val v = object : ThriftType.Visitor<Unit> {
-            override fun visitVoid(voidType: BuiltinType) {
-            }
+    val v =
+        object : ThriftType.Visitor<Unit> {
+          override fun visitVoid(voidType: BuiltinType) {}
 
-            override fun visitBool(boolType: BuiltinType) {
-            }
+          override fun visitBool(boolType: BuiltinType) {}
 
-            override fun visitByte(byteType: BuiltinType) {
-                ctr.incrementAndGet()
-            }
+          override fun visitByte(byteType: BuiltinType) {
+            ctr.incrementAndGet()
+          }
 
-            override fun visitI16(i16Type: BuiltinType) {
-            }
+          override fun visitI16(i16Type: BuiltinType) {}
 
-            override fun visitI32(i32Type: BuiltinType) {
-            }
+          override fun visitI32(i32Type: BuiltinType) {}
 
-            override fun visitI64(i64Type: BuiltinType) {
-            }
+          override fun visitI64(i64Type: BuiltinType) {}
 
-            override fun visitDouble(doubleType: BuiltinType) {
-            }
+          override fun visitDouble(doubleType: BuiltinType) {}
 
-            override fun visitString(stringType: BuiltinType) {
-            }
+          override fun visitString(stringType: BuiltinType) {}
 
-            override fun visitBinary(binaryType: BuiltinType) {
-            }
+          override fun visitBinary(binaryType: BuiltinType) {}
 
-            override fun visitEnum(enumType: EnumType) {
-            }
+          override fun visitEnum(enumType: EnumType) {}
 
-            override fun visitList(listType: ListType) {
-            }
+          override fun visitList(listType: ListType) {}
 
-            override fun visitSet(setType: SetType) {
-            }
+          override fun visitSet(setType: SetType) {}
 
-            override fun visitMap(mapType: MapType) {
-            }
+          override fun visitMap(mapType: MapType) {}
 
-            override fun visitStruct(structType: StructType) {
-            }
+          override fun visitStruct(structType: StructType) {}
 
-            override fun visitTypedef(typedefType: TypedefType) {
-            }
+          override fun visitTypedef(typedefType: TypedefType) {}
 
-            override fun visitService(serviceType: ServiceType) {
-            }
+          override fun visitService(serviceType: ServiceType) {}
         }
 
-        BuiltinType.I8.accept(v)
-        BuiltinType.BYTE.accept(v)
+    BuiltinType.I8.accept(v)
+    BuiltinType.BYTE.accept(v)
 
-        BuiltinType.I8.isBuiltin shouldBe true
-        ctr.get() shouldBe 2
-    }
+    BuiltinType.I8.isBuiltin shouldBe true
+    ctr.get() shouldBe 2
+  }
 
-    @Test
-    fun typesWithSameNameAreEqual() {
-        val one = BuiltinType.get("i32")
-        val two = BuiltinType.get("i32")
+  @Test
+  fun typesWithSameNameAreEqual() {
+    val one = BuiltinType.get("i32")
+    val two = BuiltinType.get("i32")
 
-        one shouldBe two
-    }
+    one shouldBe two
+  }
 
-    @Test
-    fun annotationsDoNotAffectEquality() {
-        val one = BuiltinType.get("i32")!!.withAnnotations(Collections.singletonMap("test", "one"))
-        val two = BuiltinType.get("i32")!!.withAnnotations(Collections.singletonMap("test", "two"))
+  @Test
+  fun annotationsDoNotAffectEquality() {
+    val one = BuiltinType.get("i32")!!.withAnnotations(Collections.singletonMap("test", "one"))
+    val two = BuiltinType.get("i32")!!.withAnnotations(Collections.singletonMap("test", "two"))
 
-        one shouldBe two
-    }
+    one shouldBe two
+  }
 
-    @Test
-    fun withAnnotationsMergesAnnotations() {
-        val one = BuiltinType.get("i32")!!.withAnnotations(Collections.singletonMap("i32", "bar"))
-        val two = one.withAnnotations(Collections.singletonMap("baz", "quux"))
+  @Test
+  fun withAnnotationsMergesAnnotations() {
+    val one = BuiltinType.get("i32")!!.withAnnotations(Collections.singletonMap("i32", "bar"))
+    val two = one.withAnnotations(Collections.singletonMap("baz", "quux"))
 
-        two.annotations["i32"] shouldBe "bar"
-        two.annotations["baz"] shouldBe "quux"
-    }
+    two.annotations["i32"] shouldBe "bar"
+    two.annotations["baz"] shouldBe "quux"
+  }
 }

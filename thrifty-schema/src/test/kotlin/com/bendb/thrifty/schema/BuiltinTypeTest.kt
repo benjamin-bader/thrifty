@@ -25,53 +25,53 @@ import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
 class BuiltinTypeTest {
-    @Test
-    fun boolIsNotNumeric() {
-        (BuiltinType.BOOL as BuiltinType).isNumeric shouldBe false
-    }
+  @Test
+  fun boolIsNotNumeric() {
+    (BuiltinType.BOOL as BuiltinType).isNumeric shouldBe false
+  }
 
-    @Test
-    fun byteIsNumeric() {
-        (BuiltinType.BYTE as BuiltinType).isNumeric shouldBe true
-    }
+  @Test
+  fun byteIsNumeric() {
+    (BuiltinType.BYTE as BuiltinType).isNumeric shouldBe true
+  }
 
-    @Test
-    fun i8IsNumeric() {
-        (BuiltinType.I8 as BuiltinType).isNumeric shouldBe true
-    }
+  @Test
+  fun i8IsNumeric() {
+    (BuiltinType.I8 as BuiltinType).isNumeric shouldBe true
+  }
 
-    @Test
-    fun i16IsNumeric() {
-        (BuiltinType.I16 as BuiltinType).isNumeric shouldBe true
-    }
+  @Test
+  fun i16IsNumeric() {
+    (BuiltinType.I16 as BuiltinType).isNumeric shouldBe true
+  }
 
-    @Test
-    fun i32IsNumeric() {
-        (BuiltinType.I32 as BuiltinType).isNumeric shouldBe true
-    }
+  @Test
+  fun i32IsNumeric() {
+    (BuiltinType.I32 as BuiltinType).isNumeric shouldBe true
+  }
 
-    @Test
-    fun i64IsNumeric() {
-        (BuiltinType.I64 as BuiltinType).isNumeric shouldBe true
-    }
+  @Test
+  fun i64IsNumeric() {
+    (BuiltinType.I64 as BuiltinType).isNumeric shouldBe true
+  }
 
-    @Test
-    fun doubleIsNumeric() {
-        (BuiltinType.DOUBLE as BuiltinType).isNumeric shouldBe true
-    }
+  @Test
+  fun doubleIsNumeric() {
+    (BuiltinType.DOUBLE as BuiltinType).isNumeric shouldBe true
+  }
 
-    @Test
-    fun stringIsNotNumeric() {
-        (BuiltinType.STRING as BuiltinType).isNumeric shouldBe false
-    }
+  @Test
+  fun stringIsNotNumeric() {
+    (BuiltinType.STRING as BuiltinType).isNumeric shouldBe false
+  }
 
-    @Test
-    fun binaryIsNotNumeric() {
-        (BuiltinType.BINARY as BuiltinType).isNumeric shouldBe false
-    }
+  @Test
+  fun binaryIsNotNumeric() {
+    (BuiltinType.BINARY as BuiltinType).isNumeric shouldBe false
+  }
 
-    @Test
-    fun voidIsNotNumeric() {
-        (BuiltinType.VOID as BuiltinType).isNumeric shouldBe false
-    }
+  @Test
+  fun voidIsNotNumeric() {
+    (BuiltinType.VOID as BuiltinType).isNumeric shouldBe false
+  }
 }

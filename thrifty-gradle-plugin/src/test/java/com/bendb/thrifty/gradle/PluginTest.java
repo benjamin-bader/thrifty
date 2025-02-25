@@ -21,18 +21,9 @@
  */
 package com.bendb.thrifty.gradle;
 
-import com.google.common.base.Joiner;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import org.gradle.testkit.runner.BuildResult;
-import org.gradle.testkit.runner.GradleRunner;
-import org.gradle.testkit.runner.TaskOutcome;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.google.common.base.Joiner;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -41,24 +32,33 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
 import java.util.function.Function;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.gradle.testkit.runner.BuildResult;
+import org.gradle.testkit.runner.GradleRunner;
+import org.gradle.testkit.runner.TaskOutcome;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 public class PluginTest {
     private final File fixturesDir = new File(Joiner.on(File.separator).join("src", "test", "projects"));
     private final GradleRunner runner = GradleRunner.create();
 
     @ParameterizedTest
-    @ValueSource(strings = {
-            "kotlin_integration_project",
-            "kotlin_project_kotlin_thrifts",
-            "kotlin_project_filtered_thrifts",
-            "kotlin_multiple_source_dirs",
-            "kotlin_project_with_custom_output_dir",
-            "kotlin_project_with_include_path",
-    })
+    @ValueSource(
+            strings = {
+                "kotlin_integration_project",
+                "kotlin_project_kotlin_thrifts",
+                "kotlin_project_filtered_thrifts",
+                "kotlin_multiple_source_dirs",
+                "kotlin_project_with_custom_output_dir",
+                "kotlin_project_with_include_path",
+            })
     void integrationProjectBuildsSuccessfully(String fixtureName) throws Exception {
         BuildResult result = buildFixture(runner, fixtureName, GradleRunner::build);
         assertEquals(TaskOutcome.SUCCESS, result.task(":generateThriftFiles").getOutcome());
@@ -67,26 +67,31 @@ public class PluginTest {
     @Test
     void typeProcessorConfigurationWorks() throws Exception {
         BuildResult result = buildFixtureWithSubprojectsAndTask(
-            runner,
-            "kotlin_type_processor",
-            Arrays.asList(":app", ":processor"),
-            ":app:build",
-            GradleRunner::build);
-        assertEquals(TaskOutcome.SUCCESS, result.task(":app:generateThriftFiles").getOutcome());
+                runner,
+                "kotlin_type_processor",
+                Arrays.asList(":app", ":processor"),
+                ":app:build",
+                GradleRunner::build);
+        assertEquals(
+                TaskOutcome.SUCCESS, result.task(":app:generateThriftFiles").getOutcome());
 
         Assertions.assertTrue(result.getOutput().contains("I AM IN A TYPE PROCESSOR"));
     }
 
-    private BuildResult buildFixture(GradleRunner runner, String fixtureName, Function<GradleRunner, BuildResult> buildAndAssert) throws Exception {
+    private BuildResult buildFixture(
+            GradleRunner runner, String fixtureName, Function<GradleRunner, BuildResult> buildAndAssert)
+            throws Exception {
         return buildFixtureWithSubprojectsAndTask(
-            runner,
-            fixtureName,
-            Collections.emptyList(),
-            ":build",
-            buildAndAssert);
+                runner, fixtureName, Collections.emptyList(), ":build", buildAndAssert);
     }
 
-    private BuildResult buildFixtureWithSubprojectsAndTask(GradleRunner runner, String fixtureName, List<String> subprojects, String task, Function<GradleRunner, BuildResult> buildAndAssert) throws Exception {
+    private BuildResult buildFixtureWithSubprojectsAndTask(
+            GradleRunner runner,
+            String fixtureName,
+            List<String> subprojects,
+            String task,
+            Function<GradleRunner, BuildResult> buildAndAssert)
+            throws Exception {
         File fixture = new File(fixturesDir, fixtureName);
         File settings = new File(fixture, "settings.gradle");
         File buildDirectory = new File(fixture, "build");
@@ -120,7 +125,8 @@ public class PluginTest {
             w.write(getThriftyVersion());
             w.write("')\n");
             w.write("      library('thrifty-runtime', 'com.bendb.thrifty', 'thrifty-runtime').versionRef('thrifty')\n");
-            w.write("      library('thrifty-compilerPlugins', 'com.bendb.thrifty', 'thrifty-compiler-plugins').versionRef('thrifty')\n");
+            w.write(
+                    "      library('thrifty-compilerPlugins', 'com.bendb.thrifty', 'thrifty-compiler-plugins').versionRef('thrifty')\n");
             w.write("    }\n");
             w.write("  }\n");
             w.write("}\n");
@@ -133,8 +139,7 @@ public class PluginTest {
         }
 
         try {
-            GradleRunner run = runner
-                    .withProjectDir(fixture)
+            GradleRunner run = runner.withProjectDir(fixture)
                     .withArguments(task, "--stacktrace", "--info", "--no-build-cache", "--no-configuration-cache");
             return buildAndAssert.apply(run);
         } finally {

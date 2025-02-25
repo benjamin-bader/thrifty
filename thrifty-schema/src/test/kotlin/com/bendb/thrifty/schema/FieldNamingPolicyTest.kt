@@ -25,53 +25,53 @@ import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
 class FieldNamingPolicyTest {
-    @Test
-    fun defaultNamesAreUnaltered() {
-        val policy = FieldNamingPolicy.DEFAULT
+  @Test
+  fun defaultNamesAreUnaltered() {
+    val policy = FieldNamingPolicy.DEFAULT
 
-        policy.apply("SSLFlag") shouldBe "SSLFlag"
-        policy.apply("MyField") shouldBe "MyField"
-    }
+    policy.apply("SSLFlag") shouldBe "SSLFlag"
+    policy.apply("MyField") shouldBe "MyField"
+  }
 
-    @Test
-    fun javaPolicyCamelCasesNames() {
-        val policy = FieldNamingPolicy.JAVA
+  @Test
+  fun javaPolicyCamelCasesNames() {
+    val policy = FieldNamingPolicy.JAVA
 
-        policy.apply("MyField") shouldBe "myField"
-        policy.apply("X") shouldBe "x"
-        policy.apply("abcde") shouldBe "abcde"
-    }
+    policy.apply("MyField") shouldBe "myField"
+    policy.apply("X") shouldBe "x"
+    policy.apply("abcde") shouldBe "abcde"
+  }
 
-    @Test
-    fun javaPolicyPreservesAcronyms() {
-        val policy = FieldNamingPolicy.JAVA
+  @Test
+  fun javaPolicyPreservesAcronyms() {
+    val policy = FieldNamingPolicy.JAVA
 
-        policy.apply("OAuthToken") shouldBe "OAuthToken"
-        policy.apply("SSLFlag") shouldBe "SSLFlag"
-    }
+    policy.apply("OAuthToken") shouldBe "OAuthToken"
+    policy.apply("SSLFlag") shouldBe "SSLFlag"
+  }
 
-    @Test
-    fun javaPolicyDifferentCaseFormatCamelCaseNames() {
-        val policy = FieldNamingPolicy.JAVA
+  @Test
+  fun javaPolicyDifferentCaseFormatCamelCaseNames() {
+    val policy = FieldNamingPolicy.JAVA
 
-        // lower_underscore
-        policy.apply("my_field") shouldBe "myField"
-        // lower-hyphen
-        policy.apply("my-field") shouldBe "myField"
-        // UpperCamel
-        policy.apply("MyField") shouldBe "myField"
-        // UPPER_UNDERSCORE
-        policy.apply("MY_FIELD") shouldBe "myField"
-    }
+    // lower_underscore
+    policy.apply("my_field") shouldBe "myField"
+    // lower-hyphen
+    policy.apply("my-field") shouldBe "myField"
+    // UpperCamel
+    policy.apply("MyField") shouldBe "myField"
+    // UPPER_UNDERSCORE
+    policy.apply("MY_FIELD") shouldBe "myField"
+  }
 
-    @Test
-    fun pascalPolicy() {
-        val policy = FieldNamingPolicy.PASCAL
-        policy.apply("my_field") shouldBe "MyField"
-        policy.apply("my-field") shouldBe "MyField"
-        policy.apply("MyField") shouldBe "MyField"
-        policy.apply("MY_FIELD") shouldBe "MyField"
-        policy.apply("my_f234") shouldBe "MyF234"
-        policy.apply("myField") shouldBe "MyField"
-    }
+  @Test
+  fun pascalPolicy() {
+    val policy = FieldNamingPolicy.PASCAL
+    policy.apply("my_field") shouldBe "MyField"
+    policy.apply("my-field") shouldBe "MyField"
+    policy.apply("MyField") shouldBe "MyField"
+    policy.apply("MY_FIELD") shouldBe "MyField"
+    policy.apply("my_f234") shouldBe "MyF234"
+    policy.apply("myField") shouldBe "MyField"
+  }
 }

@@ -22,89 +22,68 @@
 package com.bendb.thrifty.schema
 
 /**
- * An object that can collect warning and error reports generated during
- * parsing and schema validation.
+ * An object that can collect warning and error reports generated during parsing and schema
+ * validation.
  */
 class ErrorReporter {
-    /**
-     * True if this reporter contains error-level reports.
-     */
-    var hasError = false
-        private set
+  /** True if this reporter contains error-level reports. */
+  var hasError = false
+    private set
 
-    private val reports_: MutableList<Report> = mutableListOf()
+  private val reports_: MutableList<Report> = mutableListOf()
 
-    /**
-     * All reports collected by this reporter.
-     */
-    val reports: List<Report>
-        get() = reports_
+  /** All reports collected by this reporter. */
+  val reports: List<Report>
+    get() = reports_
 
-    /**
-     * Reports a warning at the given [location].
-     */
-    fun warn(location: Location, message: String) {
-        reports_.add(Report(Level.WARNING, location, message))
+  /** Reports a warning at the given [location]. */
+  fun warn(location: Location, message: String) {
+    reports_.add(Report(Level.WARNING, location, message))
+  }
+
+  /** Reports an error at the given [location]. */
+  fun error(location: Location, message: String) {
+    hasError = true
+    reports_.add(Report(Level.ERROR, location, message))
+  }
+
+  /** Returns a list of formatted warning and error reports contained in this reporter. */
+  fun formattedReports(): List<String> {
+    val list = mutableListOf<String>()
+    val sb = StringBuilder()
+    for (report in reports_) {
+      when (report.level) {
+        ErrorReporter.Level.WARNING -> sb.append("W: ")
+        ErrorReporter.Level.ERROR -> sb.append("E: ")
+      }
+
+      sb.append(report.message)
+      sb.append(" (at ")
+      sb.append(report.location)
+      sb.append(")")
+
+      list += sb.toString()
+
+      sb.setLength(0)
     }
+    return list
+  }
 
-    /**
-     * Reports an error at the given [location].
-     */
-    fun error(location: Location, message: String) {
-        hasError = true
-        reports_.add(Report(Level.ERROR, location, message))
-    }
+  /**
+   * A structure containing a report level, content, and location.
+   *
+   * @property level The severity of the report.
+   * @property location The point in a .thrift file containing the subject of the report.
+   * @property message A description of the warning or error condition.
+   */
+  data class Report(val level: Level, val location: Location, val message: String)
 
-    /**
-     * Returns a list of formatted warning and error reports contained in this
-     * reporter.
-     */
-    fun formattedReports(): List<String> {
-        val list = mutableListOf<String>()
-        val sb = StringBuilder()
-        for (report in reports_) {
-            when (report.level) {
-                ErrorReporter.Level.WARNING -> sb.append("W: ")
-                ErrorReporter.Level.ERROR -> sb.append("E: ")
-            }
+  /** The severities of reports. */
+  enum class Level {
+    /** A warning is non-fatal, but should be investigated. */
+    WARNING,
 
-            sb.append(report.message)
-            sb.append(" (at ")
-            sb.append(report.location)
-            sb.append(")")
-
-            list += sb.toString()
-
-            sb.setLength(0)
-        }
-        return list
-    }
-
-    /**
-     * A structure containing a report level, content, and location.
-     *
-     * @property level The severity of the report.
-     * @property location The point in a .thrift file containing the subject of the report.
-     * @property message A description of the warning or error condition.
-     */
-    data class Report(
-            val level: Level,
-            val location: Location,
-            val message: String
-    )
-
-    /**
-     * The severities of reports.
-     */
-    enum class Level {
-        /**
-         * A warning is non-fatal, but should be investigated.
-         */
-        WARNING,
-
-        /**
-         * An error indicates that loading cannot proceed.
-         */
-        ERROR
-    }
+    /** An error indicates that loading cannot proceed. */
+    ERROR
+  }
 }

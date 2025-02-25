@@ -24,38 +24,32 @@ package com.bendb.thrifty.schema
 import java.util.Objects
 
 /**
- * Base type of all user-defined Thrift IDL types, including structs, unions,
- * exceptions, services, and typedefs.
+ * Base type of all user-defined Thrift IDL types, including structs, unions, exceptions, services,
+ * and typedefs.
  */
-abstract class UserType internal constructor(
-        private val mixin: UserElementMixin
-) : ThriftType(mixin.name), UserElement by mixin {
+abstract class UserType internal constructor(private val mixin: UserElementMixin) :
+    ThriftType(mixin.name), UserElement by mixin {
 
-    override val isDeprecated: Boolean
-        get() = mixin.isDeprecated
+  override val isDeprecated: Boolean
+    get() = mixin.isDeprecated
 
-    override val name: String = mixin.name
+  override val name: String = mixin.name
 
-    /** @inheritdoc */
-    override fun equals(other: Any?): Boolean {
-        if (!super.equals(other)) return false
-        if (other !is UserType) return false
+  /** @inheritdoc */
+  override fun equals(other: Any?): Boolean {
+    if (!super.equals(other)) return false
+    if (other !is UserType) return false
 
-        return this.mixin == other.mixin
-    }
+    return this.mixin == other.mixin
+  }
 
-    /** @inheritdoc */
-    override fun hashCode(): Int {
-        return Objects.hash(super.hashCode(), mixin)
-    }
+  /** @inheritdoc */
+  override fun hashCode(): Int {
+    return Objects.hash(super.hashCode(), mixin)
+  }
 
-    /**
-     * A base type for builders of all UserType-derived types.
-     */
-    abstract class UserTypeBuilder<
-            TType : UserType,
-            TBuilder : UserType.UserTypeBuilder<TType, TBuilder>
-    > internal constructor(
-            type: TType
-    ) : AbstractUserElementBuilder<TType, TBuilder>(type.mixin)
+  /** A base type for builders of all UserType-derived types. */
+  abstract class UserTypeBuilder<
+      TType : UserType, TBuilder : UserType.UserTypeBuilder<TType, TBuilder>>
+  internal constructor(type: TType) : AbstractUserElementBuilder<TType, TBuilder>(type.mixin)
 }

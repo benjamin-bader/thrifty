@@ -23,97 +23,92 @@ package com.bendb.thrifty.schema
 
 import java.util.UUID
 
-/**
- * Represents data common to user-defined elements of a Thrift program.
- */
+/** Represents data common to user-defined elements of a Thrift program. */
 interface UserElement {
 
-    /**
-     * Gets a value indicating whether the element has been marked as
-     * deprecated; this may or may not be meaningful, depending on the
-     * particular type of element.
-     *
-     * @return true if this element has been marked as deprecated.
-     */
-    val isDeprecated: Boolean
+  /**
+   * Gets a value indicating whether the element has been marked as deprecated; this may or may not
+   * be meaningful, depending on the particular type of element.
+   *
+   * @return true if this element has been marked as deprecated.
+   */
+  val isDeprecated: Boolean
 
-    /**
-     * A globally unique ID for this element. This is useful for cases where you newBuilder() an element to change it
-     * (such as in a Schema preprocessor) and want to update references from other objects in a deterministic way that
-     * matches IDs. If you want a new instance of an object that is unrelated, you should change this value.
-     *
-     * @return the uuid of this element.
-     */
-    val uuid: UUID
+  /**
+   * A globally unique ID for this element. This is useful for cases where you newBuilder() an
+   * element to change it (such as in a Schema preprocessor) and want to update references from
+   * other objects in a deterministic way that matches IDs. If you want a new instance of an object
+   * that is unrelated, you should change this value.
+   *
+   * @return the uuid of this element.
+   */
+  val uuid: UUID
 
-    /**
-     * Gets the name of the element.
-     *
-     * @return the name of this element.
-     */
-    val name: String
+  /**
+   * Gets the name of the element.
+   *
+   * @return the name of this element.
+   */
+  val name: String
 
-    /**
-     * Gets the [Location] where the element is defined.
-     *
-     * @return the Location where this element is defined.
-     */
-    val location: Location
+  /**
+   * Gets the [Location] where the element is defined.
+   *
+   * @return the Location where this element is defined.
+   */
+  val location: Location
 
-    /**
-     * Gets the documentation comments of the element, or an empty string.
-     *
-     * @return the documentation present on this element, or an empty string.
-     */
-    val documentation: String
+  /**
+   * Gets the documentation comments of the element, or an empty string.
+   *
+   * @return the documentation present on this element, or an empty string.
+   */
+  val documentation: String
 
-    /**
-     * Gets a value indicating whether the element contains non-empty Javadoc.
-     *
-     * @return true if this element contains non-empty Javadoc.
-     */
-    val hasJavadoc: Boolean
-        get() = isNonEmptyJavadoc(documentation)
+  /**
+   * Gets a value indicating whether the element contains non-empty Javadoc.
+   *
+   * @return true if this element contains non-empty Javadoc.
+   */
+  val hasJavadoc: Boolean
+    get() = isNonEmptyJavadoc(documentation)
 
-    /**
-     * Gets an immutable map containing any annotations present on the element.
-     *
-     * @return all annotations present on this element.
-     */
-    val annotations: Map<String, String>
+  /**
+   * Gets an immutable map containing any annotations present on the element.
+   *
+   * @return all annotations present on this element.
+   */
+  val annotations: Map<String, String>
 
-    /**
-     * A map of namespaces to which this element belongs.
-     */
-    val namespaces: Map<NamespaceScope, String>
+  /** A map of namespaces to which this element belongs. */
+  val namespaces: Map<NamespaceScope, String>
 
-    /**
-     * Gets the first namespace found for the given list of scopes.
-     *
-     * Iterates over the scopes in the order provided, returning the first
-     * non-null namespace found for this element.
-     *
-     * Defaults to the catch-all namespace (*)
-     *
-     * @param scopes The list of scopes to search.
-     * @return the first namespace found corresponding to one of the given
-     *         [scopes], the * namespace, or null.
-     */
-    fun getNamespaceFor(vararg scopes: NamespaceScope): String? {
-        for (s in scopes) {
-            namespaces[s]?.let { return it }
-        }
-        return namespaces[NamespaceScope.ALL]
+  /**
+   * Gets the first namespace found for the given list of scopes.
+   *
+   * Iterates over the scopes in the order provided, returning the first non-null namespace found
+   * for this element.
+   *
+   * Defaults to the catch-all namespace (*)
+   *
+   * @param scopes The list of scopes to search.
+   * @return the first namespace found corresponding to one of the given [scopes], the * namespace,
+   *   or null.
+   */
+  fun getNamespaceFor(vararg scopes: NamespaceScope): String? {
+    for (s in scopes) {
+      namespaces[s]?.let {
+        return it
+      }
     }
+    return namespaces[NamespaceScope.ALL]
+  }
 }
 
-/**
- * Returns `true` if `doc` is non-empty Javadoc, otherwise
- * `false`.
- */
+/** Returns `true` if `doc` is non-empty Javadoc, otherwise `false`. */
 fun isNonEmptyJavadoc(doc: String?): Boolean {
-    if (doc == null) return false
-    if (doc.isEmpty()) return false
+  if (doc == null) return false
+  if (doc.isEmpty()) return false
 
-    return doc.any { !Character.isWhitespace(it) }
+  return doc.any { !Character.isWhitespace(it) }
 }

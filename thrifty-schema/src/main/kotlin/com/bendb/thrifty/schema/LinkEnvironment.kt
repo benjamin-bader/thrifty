@@ -21,22 +21,17 @@
  */
 package com.bendb.thrifty.schema
 
-internal class LinkEnvironment(
-        private val errorReporter: ErrorReporter
-) {
-    /**
-     * A mapping of files to their corresponding [Linker] instances.
-     */
-    private val linkers = mutableMapOf<Program, Linker>()
+internal class LinkEnvironment(private val errorReporter: ErrorReporter) {
+  /** A mapping of files to their corresponding [Linker] instances. */
+  private val linkers = mutableMapOf<Program, Linker>()
 
-    fun getLinker(program: Program): Linker = linkers.getOrPut(program) {
-        Linker(this, program, errorReporter)
-    }
+  fun getLinker(program: Program): Linker =
+      linkers.getOrPut(program) { Linker(this, program, errorReporter) }
 
-    fun reporter(): ErrorReporter {
-        return errorReporter
-    }
+  fun reporter(): ErrorReporter {
+    return errorReporter
+  }
 
-    val hasErrors: Boolean
-        get() = errorReporter.hasError
+  val hasErrors: Boolean
+    get() = errorReporter.hasError
 }

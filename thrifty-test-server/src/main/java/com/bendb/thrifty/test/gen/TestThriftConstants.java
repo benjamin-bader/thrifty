@@ -9,6 +9,5 @@ package com.bendb.thrifty.test.gen;
 @SuppressWarnings({"cast", "rawtypes", "serial", "unchecked", "unused"})
 public class TestThriftConstants {
 
-  public static final Numberz myNumberz = Numberz.ONE;
-
+    public static final Numberz myNumberz = Numberz.ONE;
 }

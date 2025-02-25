@@ -23,71 +23,61 @@ package com.bendb.thrifty.schema
 
 import com.bendb.thrifty.schema.parser.EnumElement
 
-/**
- * Represents an enumeration defined in Thrift IDL.
- */
+/** Represents an enumeration defined in Thrift IDL. */
 class EnumType : UserType {
 
-    /**
-     * All members contained within this enum type.
-     */
-    val members: List<EnumMember>
+  /** All members contained within this enum type. */
+  val members: List<EnumMember>
 
-    internal constructor(element: EnumElement, namespaces: Map<NamespaceScope, String>): super(UserElementMixin(element, namespaces)) {
-        this.members = element.members.map { EnumMember(it, namespaces) }
-    }
+  internal constructor(
+      element: EnumElement,
+      namespaces: Map<NamespaceScope, String>
+  ) : super(UserElementMixin(element, namespaces)) {
+    this.members = element.members.map { EnumMember(it, namespaces) }
+  }
 
-    private constructor(builder: Builder) : super(builder.mixin) {
-        this.members = builder.members
-    }
+  private constructor(builder: Builder) : super(builder.mixin) {
+    this.members = builder.members
+  }
 
-    /**
-     * Find the [member][EnumMember] with the given [name].
-     *
-     * @throws NoSuchElementException
-     */
-    fun findMemberByName(name: String): EnumMember {
-        return members.first { it.name == name }
-    }
+  /**
+   * Find the [member][EnumMember] with the given [name].
+   *
+   * @throws NoSuchElementException
+   */
+  fun findMemberByName(name: String): EnumMember {
+    return members.first { it.name == name }
+  }
 
-    /**
-     * Find the [member][EnumMember] with the given [id].
-     *
-     * @throws NoSuchElementException
-     */
-    fun findMemberById(id: Int): EnumMember {
-        return members.first { it.value == id }
-    }
+  /**
+   * Find the [member][EnumMember] with the given [id].
+   *
+   * @throws NoSuchElementException
+   */
+  fun findMemberById(id: Int): EnumMember {
+    return members.first { it.value == id }
+  }
 
-    override val isEnum: Boolean = true
+  override val isEnum: Boolean = true
 
-    override fun <T> accept(visitor: ThriftType.Visitor<T>): T = visitor.visitEnum(this)
+  override fun <T> accept(visitor: ThriftType.Visitor<T>): T = visitor.visitEnum(this)
 
-    override fun withAnnotations(annotations: Map<String, String>): ThriftType {
-        return toBuilder()
-                .annotations(mergeAnnotations(this.annotations, annotations))
-                .build()
-    }
+  override fun withAnnotations(annotations: Map<String, String>): ThriftType {
+    return toBuilder().annotations(mergeAnnotations(this.annotations, annotations)).build()
+  }
 
-    /**
-     * Create a [Builder] initialized with this object's values.
-     */
-    fun toBuilder(): Builder = Builder(this)
+  /** Create a [Builder] initialized with this object's values. */
+  fun toBuilder(): Builder = Builder(this)
 
-    /**
-     * An object that can build [EnumType] instances.
-     */
-    class Builder internal constructor(enumType: EnumType) : UserType.UserTypeBuilder<EnumType, Builder>(enumType) {
-        internal var members: List<EnumMember> = enumType.members
-            private set
+  /** An object that can build [EnumType] instances. */
+  class Builder internal constructor(enumType: EnumType) :
+      UserType.UserTypeBuilder<EnumType, Builder>(enumType) {
+    internal var members: List<EnumMember> = enumType.members
+      private set
 
-        /**
-         * Use the given [members] for the enum under construction.
-         */
-        fun members(members: List<EnumMember>): Builder = apply {
-            this.members = members.toList()
-        }
+    /** Use the given [members] for the enum under construction. */
+    fun members(members: List<EnumMember>): Builder = apply { this.members = members.toList() }
 
-        override fun build(): EnumType = EnumType(this)
-    }
+    override fun build(): EnumType = EnumType(this)
+  }
 }

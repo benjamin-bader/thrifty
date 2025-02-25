@@ -21,6 +21,8 @@
  */
 package com.bendb.thrifty.gradle;
 
+import java.io.File;
+import javax.inject.Inject;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.logging.configuration.ShowStacktrace;
@@ -35,9 +37,6 @@ import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.workers.WorkQueue;
 import org.gradle.workers.WorkerExecutor;
-
-import javax.inject.Inject;
-import java.io.File;
 
 /**
  * The Gradle task responsible for triggering generation of Thrifty source files.
@@ -62,7 +61,7 @@ public abstract class ThriftyTask extends SourceTask {
     public abstract ConfigurableFileCollection getThriftyClasspath();
 
     @Inject
-    abstract public WorkerExecutor getWorkerExecutor();
+    public abstract WorkerExecutor getWorkerExecutor();
 
     @TaskAction
     public void run() {
@@ -74,7 +73,8 @@ public abstract class ThriftyTask extends SourceTask {
             params.getOutputDirectory().set(getOutputDirectory());
             params.getIncludePath().set(getIncludePath());
             params.getSource().from(getSource());
-            params.getThriftOptions().set(new SerializableThriftOptions(getThriftOptions().get()));
+            params.getThriftOptions()
+                    .set(new SerializableThriftOptions(getThriftOptions().get()));
             params.getShowStacktrace().set(getShowStacktrace());
         });
     }

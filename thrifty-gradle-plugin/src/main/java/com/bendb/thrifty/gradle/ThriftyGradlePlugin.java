@@ -24,6 +24,10 @@ package com.bendb.thrifty.gradle;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Resources;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.Properties;
 import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -33,11 +37,6 @@ import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskProvider;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.Properties;
 
 /**
  * The plugin makes everything happen.
@@ -57,16 +56,18 @@ public abstract class ThriftyGradlePlugin implements Plugin<Project> {
         Configuration thriftyConfig = createConfiguration(project, ext.getThriftyVersion());
         createTypeProcessorConfiguration(project, thriftyConfig);
 
-        TaskProvider<ThriftyTask> thriftTaskProvider = project.getTasks().register("generateThriftFiles", ThriftyTask.class, t -> {
-            t.setGroup("thrifty");
-            t.setDescription("Generate Thrifty thrift implementations for .thrift files");
-            t.getIncludePath().set(ext.getIncludePath());
-            t.getOutputDirectory().set(ext.getOutputDirectory());
-            t.getThriftOptions().set(ext.getThriftOptions());
-            t.getShowStacktrace().set(project.getGradle().getStartParameter().getShowStacktrace());
-            t.getThriftyClasspath().from(thriftyConfig);
-            t.source(ext.getSourceDirectorySets());
-        });
+        TaskProvider<ThriftyTask> thriftTaskProvider = project.getTasks()
+                .register("generateThriftFiles", ThriftyTask.class, t -> {
+                    t.setGroup("thrifty");
+                    t.setDescription("Generate Thrifty thrift implementations for .thrift files");
+                    t.getIncludePath().set(ext.getIncludePath());
+                    t.getOutputDirectory().set(ext.getOutputDirectory());
+                    t.getThriftOptions().set(ext.getThriftOptions());
+                    t.getShowStacktrace()
+                            .set(project.getGradle().getStartParameter().getShowStacktrace());
+                    t.getThriftyClasspath().from(thriftyConfig);
+                    t.source(ext.getSourceDirectorySets());
+                });
 
         project.getPlugins().withType(JavaBasePlugin.class).configureEach(plugin -> {
             JavaPluginExtension extension = project.getExtensions().getByType(JavaPluginExtension.class);
@@ -102,8 +103,10 @@ public abstract class ThriftyGradlePlugin implements Plugin<Project> {
 
         configuration.defaultDependencies(deps -> {
             deps.add(project.getDependencies().create("com.bendb.thrifty:thrifty-schema:" + thriftyVersion.get()));
-            deps.add(project.getDependencies().create("com.bendb.thrifty:thrifty-kotlin-codegen:" + thriftyVersion.get()));
-            deps.add(project.getDependencies().create("com.bendb.thrifty:thrifty-compiler-plugins:" + thriftyVersion.get()));
+            deps.add(project.getDependencies()
+                    .create("com.bendb.thrifty:thrifty-kotlin-codegen:" + thriftyVersion.get()));
+            deps.add(project.getDependencies()
+                    .create("com.bendb.thrifty:thrifty-compiler-plugins:" + thriftyVersion.get()));
         });
 
         return configuration;

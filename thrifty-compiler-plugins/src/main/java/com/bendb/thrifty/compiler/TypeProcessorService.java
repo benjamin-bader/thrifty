@@ -22,7 +22,6 @@
 package com.bendb.thrifty.compiler;
 
 import com.bendb.thrifty.compiler.spi.TypeProcessor;
-
 import java.util.Iterator;
 import java.util.ServiceLoader;
 

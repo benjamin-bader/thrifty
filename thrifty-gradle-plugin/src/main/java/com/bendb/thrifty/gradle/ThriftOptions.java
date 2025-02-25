@@ -21,12 +21,11 @@
  */
 package com.bendb.thrifty.gradle;
 
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Optional;
-
 import java.io.Serializable;
 import java.util.Locale;
 import java.util.TreeMap;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 
 /**
  * Thrift options applicable to all supported languages.

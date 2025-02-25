@@ -29,6 +29,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface ServerConfig {
-  ServerProtocol protocol() default ServerProtocol.BINARY;
-  ServerTransport transport() default ServerTransport.BLOCKING;
+    ServerProtocol protocol() default ServerProtocol.BINARY;
+
+    ServerTransport transport() default ServerTransport.BLOCKING;
 }

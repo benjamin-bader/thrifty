@@ -37,20 +37,21 @@ import io.kotest.matchers.string.contain
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldMatch
 import io.kotest.matchers.string.shouldNotContain
+import java.io.File
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
-import java.io.File
 
 @Execution(ExecutionMode.CONCURRENT)
 class KotlinCodeGeneratorTest {
-    @TempDir
-    lateinit var tempDir: File
+  @TempDir lateinit var tempDir: File
 
-    @Test
-    fun `struct to data class`() {
-        val schema = load("""
+  @Test
+  fun `struct to data class`() {
+    val schema =
+        load(
+            """
             namespace kt com.test
 
             // This is an enum
@@ -84,16 +85,18 @@ class KotlinCodeGeneratorTest {
             struct AnotherOne {
               1: optional i32 NumBitTheDust = 900
             }
-        """.trimIndent())
+        """
+                .trimIndent())
 
-        val files = KotlinCodeGenerator(FieldNamingPolicy.JAVA).generate(schema)
+    val files = KotlinCodeGenerator(FieldNamingPolicy.JAVA).generate(schema)
 
-        files.shouldCompile()
-    }
+    files.shouldCompile()
+  }
 
-    @Test
-    fun `output styles work as advertised`() {
-        val thrift = """
+  @Test
+  fun `output styles work as advertised`() {
+    val thrift =
+        """
             namespace kt com.test
 
             enum AnEnum {
@@ -104,144 +107,159 @@ class KotlinCodeGeneratorTest {
             struct AStruct {
               1: optional string ssn;
             }
-        """.trimIndent()
+        """
+            .trimIndent()
 
-        val schema = load(thrift)
-        val gen = KotlinCodeGenerator()
+    val schema = load(thrift)
+    val gen = KotlinCodeGenerator()
 
-        // Default should be one file per namespace
-        gen.outputStyle shouldBe KotlinCodeGenerator.OutputStyle.FILE_PER_NAMESPACE
-        gen.generate(schema).size shouldBe 1
+    // Default should be one file per namespace
+    gen.outputStyle shouldBe KotlinCodeGenerator.OutputStyle.FILE_PER_NAMESPACE
+    gen.generate(schema).size shouldBe 1
 
-        gen.outputStyle = KotlinCodeGenerator.OutputStyle.FILE_PER_TYPE
-        gen.generate(schema).size shouldBe 2
-    }
+    gen.outputStyle = KotlinCodeGenerator.OutputStyle.FILE_PER_TYPE
+    gen.generate(schema).size shouldBe 2
+  }
 
-    @Test
-    fun `file-per-type puts constants into a file named 'Constants'`() {
-        val thrift = """
+  @Test
+  fun `file-per-type puts constants into a file named 'Constants'`() {
+    val thrift =
+        """
             namespace kt com.test
 
             const i32 ONE = 1;
             const i64 TWO = 2;
             const string THREE = "three";
-        """.trimIndent()
+        """
+            .trimIndent()
 
-        val schema = load(thrift)
-        val gen = KotlinCodeGenerator().filePerType()
-        val specs = gen.generate(schema)
+    val schema = load(thrift)
+    val gen = KotlinCodeGenerator().filePerType()
+    val specs = gen.generate(schema)
 
-        specs.shouldCompile()
-        specs.single().name shouldBe "Constants" // ".kt" suffix is appended when the file is written out
-    }
+    specs.shouldCompile()
+    specs.single().name shouldBe
+        "Constants" // ".kt" suffix is appended when the file is written out
+  }
 
-    @Test
-    fun `empty structs get default equals, hashcode, and toString methods`() {
-        val thrift = """
+  @Test
+  fun `empty structs get default equals, hashcode, and toString methods`() {
+    val thrift =
+        """
             namespace kt com.test
 
             struct Empty {}
-        """.trimIndent()
+        """
+            .trimIndent()
 
-        val specs = generate(thrift)
-        specs.shouldCompile()
+    val specs = generate(thrift)
+    specs.shouldCompile()
 
-        val struct = specs.single().members.single() as TypeSpec
+    val struct = specs.single().members.single() as TypeSpec
 
-        struct.name shouldBe "Empty"
-        struct.modifiers.any { it == KModifier.DATA } shouldBe false
-        struct.funSpecs.any { it.name == "toString" } shouldBe true
-        struct.funSpecs.any { it.name == "hashCode" } shouldBe true
-        struct.funSpecs.any { it.name == "equals" } shouldBe true
-    }
+    struct.name shouldBe "Empty"
+    struct.modifiers.any { it == KModifier.DATA } shouldBe false
+    struct.funSpecs.any { it.name == "toString" } shouldBe true
+    struct.funSpecs.any { it.name == "hashCode" } shouldBe true
+    struct.funSpecs.any { it.name == "equals" } shouldBe true
+  }
 
-    @Test
-    fun `Non-empty structs are data classes`() {
-        val thrift = """
+  @Test
+  fun `Non-empty structs are data classes`() {
+    val thrift =
+        """
             namespace kt com.test
 
             struct NonEmpty {
               1: required i32 Number
             }
-        """.trimIndent()
+        """
+            .trimIndent()
 
-        val specs = generate(thrift)
-        specs.shouldCompile()
+    val specs = generate(thrift)
+    specs.shouldCompile()
 
-        val struct = specs.single().members.single() as TypeSpec
+    val struct = specs.single().members.single() as TypeSpec
 
-        struct.name shouldBe "NonEmpty"
-        struct.modifiers.any { it == KModifier.DATA } shouldBe true
-        struct.funSpecs.any { it.name == "toString" } shouldBe false
-        struct.funSpecs.any { it.name == "hashCode" } shouldBe false
-        struct.funSpecs.any { it.name == "equals" } shouldBe false
-    }
+    struct.name shouldBe "NonEmpty"
+    struct.modifiers.any { it == KModifier.DATA } shouldBe true
+    struct.funSpecs.any { it.name == "toString" } shouldBe false
+    struct.funSpecs.any { it.name == "hashCode" } shouldBe false
+    struct.funSpecs.any { it.name == "equals" } shouldBe false
+  }
 
-    @Test
-    fun `struct with docs is a data class with docs`() {
-        val thrift = """
+  @Test
+  fun `struct with docs is a data class with docs`() {
+    val thrift =
+        """
             namespace kt com.test
 
             /** Docs */
             struct NonEmpty {
               1: required i32 Number
             }
-        """.trimIndent()
+        """
+            .trimIndent()
 
-        val specs = generate(thrift)
-        specs.shouldCompile()
+    val specs = generate(thrift)
+    specs.shouldCompile()
 
-        val struct = specs.single().members.single() as TypeSpec
+    val struct = specs.single().members.single() as TypeSpec
 
-        struct.name shouldBe "NonEmpty"
-        struct.modifiers.any { it == KModifier.DATA } shouldBe true
-        struct.kdoc.isNotEmpty() shouldBe true
-        struct.kdoc.toString().trim() shouldBe "Docs"
-    }
+    struct.name shouldBe "NonEmpty"
+    struct.modifiers.any { it == KModifier.DATA } shouldBe true
+    struct.kdoc.isNotEmpty() shouldBe true
+    struct.kdoc.toString().trim() shouldBe "Docs"
+  }
 
-    @Test
-    fun `struct field with docs is a data class property with docs`() {
-        val thrift = """
+  @Test
+  fun `struct field with docs is a data class property with docs`() {
+    val thrift =
+        """
             namespace kt com.test
            
             struct NonEmpty {
               /** Docs */
               1: required i32 Number
             }
-        """.trimIndent()
+        """
+            .trimIndent()
 
-        val specs = generate(thrift)
-        specs.shouldCompile()
+    val specs = generate(thrift)
+    specs.shouldCompile()
 
-        val struct = specs.single().members.single() as TypeSpec
+    val struct = specs.single().members.single() as TypeSpec
 
-        struct.name shouldBe "NonEmpty"
-        struct.modifiers.any { it == KModifier.DATA } shouldBe true
-        struct.kdoc.isEmpty() shouldBe true
-        struct.propertySpecs shouldHaveSize 1
-        val propertySpec = struct.propertySpecs.first()
-        propertySpec.kdoc.isNotEmpty() shouldBe true
-        propertySpec.kdoc.toString().trim() shouldBe "Docs"
-    }
+    struct.name shouldBe "NonEmpty"
+    struct.modifiers.any { it == KModifier.DATA } shouldBe true
+    struct.kdoc.isEmpty() shouldBe true
+    struct.propertySpecs shouldHaveSize 1
+    val propertySpec = struct.propertySpecs.first()
+    propertySpec.kdoc.isNotEmpty() shouldBe true
+    propertySpec.kdoc.toString().trim() shouldBe "Docs"
+  }
 
-    @Test
-    fun `exceptions with reserved field names get renamed fields`() {
-        val thrift = """
+  @Test
+  fun `exceptions with reserved field names get renamed fields`() {
+    val thrift =
+        """
             namespace kt com.test
 
             exception Fail { 1: required list<i32> Message }
-        """.trimIndent()
+        """
+            .trimIndent()
 
-        val schema = load(thrift)
-        val specs = KotlinCodeGenerator(FieldNamingPolicy.JAVA).generate(schema)
-        specs.shouldCompile()
-        val xception = specs.single().members.single() as TypeSpec
-        xception.propertySpecs.single().name shouldBe "message_"
-    }
+    val schema = load(thrift)
+    val specs = KotlinCodeGenerator(FieldNamingPolicy.JAVA).generate(schema)
+    specs.shouldCompile()
+    val xception = specs.single().members.single() as TypeSpec
+    xception.propertySpecs.single().name shouldBe "message_"
+  }
 
-    @Test
-    fun services() {
-        val thrift = """
+  @Test
+  fun services() {
+    val thrift =
+        """
             namespace kt test.services
 
             struct Foo { 1: required string foo; }
@@ -252,15 +270,17 @@ class KotlinCodeGeneratorTest {
               Bar doThingTwo(1: Foo foo) throws (1: X x)
 
             }
-        """.trimIndent()
+        """
+            .trimIndent()
 
-        val specs = generate(thrift)
-        specs.shouldCompile()
-    }
+    val specs = generate(thrift)
+    specs.shouldCompile()
+  }
 
-    @Test
-    fun server() {
-        val thrift = """
+  @Test
+  fun server() {
+    val thrift =
+        """
             namespace kt test.services
 
             struct Foo { 1: required string foo; }
@@ -270,17 +290,17 @@ class KotlinCodeGeneratorTest {
               void doThingOne(1: Foo foo) throws (2: X xxxx)
               Bar doThingTwo(1: Foo foo) throws (1: X x)
             }
-        """.trimIndent()
+        """
+            .trimIndent()
 
-        val specs = generate(thrift) {
-            generateServer()
-        }
-        specs.shouldCompile()
-    }
+    val specs = generate(thrift) { generateServer() }
+    specs.shouldCompile()
+  }
 
-    @Test
-    fun `typedefs become typealiases`() {
-        val thrift = """
+  @Test
+  fun `typedefs become typealiases`() {
+    val thrift =
+        """
             namespace kt test.typedefs
 
             typedef map<i32, map<string, double>> FooMap;
@@ -288,42 +308,48 @@ class KotlinCodeGeneratorTest {
             struct HasMap {
               1: optional FooMap theMap;
             }
-        """.trimIndent()
+        """
+            .trimIndent()
 
-        val specs = generate(thrift)
-        specs.shouldCompile()
-    }
+    val specs = generate(thrift)
+    specs.shouldCompile()
+  }
 
-    @Test
-    fun `services that return typedefs`() {
-        val thrift = """
+  @Test
+  fun `services that return typedefs`() {
+    val thrift =
+        """
             namespace kt test.typedefs
 
             typedef i32 TheNumber;
             service Foo {
               TheNumber doIt()
             }
-        """.trimIndent()
+        """
+            .trimIndent()
 
-        val file = generate(thrift).single()
-        println(file)
-        file.shouldCompile()
-        val svc = file.members.first { it is TypeSpec && it.name == "Foo" } as TypeSpec
-        val method = svc.funSpecs.single()
-        method.name shouldBe "doIt"
-    }
+    val file = generate(thrift).single()
+    println(file)
+    file.shouldCompile()
+    val svc = file.members.first { it is TypeSpec && it.name == "Foo" } as TypeSpec
+    val method = svc.funSpecs.single()
+    method.name shouldBe "doIt"
+  }
 
-    @Test
-    fun `constants that are typedefs`() {
-        val thrift = """
+  @Test
+  fun `constants that are typedefs`() {
+    val thrift =
+        """
             |namespace kt test.typedefs
             |
             |typedef map<i32, i32> Weights
             |
             |const Weights WEIGHTS = {1: 2}
-        """.trimMargin()
+        """
+            .trimMargin()
 
-        "${generate(thrift).single()}" shouldBe """
+    "${generate(thrift).single()}" shouldBe
+        """
             |package test.typedefs
             |
             |import kotlin.Int
@@ -333,12 +359,14 @@ class KotlinCodeGeneratorTest {
             |
             |public val WEIGHTS: Weights = mapOf(1 to 2)
             |
-        """.trimMargin()
-    }
+        """
+            .trimMargin()
+  }
 
-    @Test
-    fun `Parcelize annotations for structs and enums`() {
-        val thrift = """
+  @Test
+  fun `Parcelize annotations for structs and enums`() {
+    val thrift =
+        """
             |namespace kt test.parcelize
             |
             |struct Foo { 1: required i32 Number; 2: optional string Text }
@@ -348,36 +376,41 @@ class KotlinCodeGeneratorTest {
             |service Svc {
             |  Foo getFoo(1: AnEnum anEnum)
             |}
-        """.trimMargin()
+        """
+            .trimMargin()
 
-        val file = generate(thrift) { parcelize() }.single()
-        val struct = file.members.single { it is TypeSpec && it.name == "Foo" } as TypeSpec
-        val anEnum = file.members.single { it is TypeSpec && it.name == "AnEnum" } as TypeSpec
-        val svc = file.members.single { it is TypeSpec && it.name == "SvcClient" } as TypeSpec
+    val file = generate(thrift) { parcelize() }.single()
+    val struct = file.members.single { it is TypeSpec && it.name == "Foo" } as TypeSpec
+    val anEnum = file.members.single { it is TypeSpec && it.name == "AnEnum" } as TypeSpec
+    val svc = file.members.single { it is TypeSpec && it.name == "SvcClient" } as TypeSpec
 
-        val parcelize = ClassName("kotlinx.android.parcel", "Parcelize")
+    val parcelize = ClassName("kotlinx.android.parcel", "Parcelize")
 
-        struct.annotations.any { it.typeName == parcelize } shouldBe true
-        anEnum.annotations.any { it.typeName == parcelize } shouldBe true
-        svc.annotations.any { it.typeName == parcelize } shouldBe false
-    }
+    struct.annotations.any { it.typeName == parcelize } shouldBe true
+    anEnum.annotations.any { it.typeName == parcelize } shouldBe true
+    svc.annotations.any { it.typeName == parcelize } shouldBe false
+  }
 
-    @Test
-    fun `Custom map-type constants`() {
-        val thrift = """
+  @Test
+  fun `Custom map-type constants`() {
+    val thrift =
+        """
             |namespace kt test.map_consts
             |
             |const map<i32, list<string>> Maps = {1: [], 2: ["foo"]}
-        """.trimMargin()
+        """
+            .trimMargin()
 
-        val text = generate(thrift) {
-            mapClassName("android.support.v4.util.ArrayMap")
-            emitFileComment(false)
-        }
-                .single()
-                .toString()
+    val text =
+        generate(thrift) {
+              mapClassName("android.support.v4.util.ArrayMap")
+              emitFileComment(false)
+            }
+            .single()
+            .toString()
 
-        text shouldBe """
+    text shouldBe
+        """
             |package test.map_consts
             |
             |import android.support.v4.util.ArrayMap
@@ -391,23 +424,28 @@ class KotlinCodeGeneratorTest {
             |      put(2, listOf("foo"))
             |    }
             |
-            """.trimMargin()
-    }
+            """
+            .trimMargin()
+  }
 
-    @Test
-    fun `suspend-fun service clients`() {
-        val thrift = """
+  @Test
+  fun `suspend-fun service clients`() {
+    val thrift =
+        """
             |namespace kt test.coro
             |
             |service Svc {
             |  i32 doSomething(1: i32 foo);
             |}
-        """.trimMargin()
+        """
+            .trimMargin()
 
-        val file = generate(thrift)
-        file.shouldCompile()
+    val file = generate(thrift)
+    file.shouldCompile()
 
-        file.single().toString() should contain("""
+    file.single().toString() should
+        contain(
+            """
             |public interface Svc {
             |  public suspend fun doSomething(foo: Int): Int
             |}
@@ -421,41 +459,49 @@ class KotlinCodeGeneratorTest {
             |    val call = DoSomethingCall(foo)
             |    return executeMethodCall(call)
             |  }
-        """.trimMargin())
-    }
+        """
+                .trimMargin())
+  }
 
-    @Test
-    fun `omit service clients`() {
-        val thrift = """
+  @Test
+  fun `omit service clients`() {
+    val thrift =
+        """
             |namespace kt test.omit_service_clients
             |
             |service Svc {
             |  i32 doSomething(1: i32 foo);
             |}
-        """.trimMargin()
+        """
+            .trimMargin()
 
-        val file = generate(thrift) { omitServiceClients() }
+    val file = generate(thrift) { omitServiceClients() }
 
-        file shouldBe emptyList()
-    }
+    file shouldBe emptyList()
+  }
 
-    @Test
-    fun `Emit @JvmName file-per-namespace annotations`() {
-        val thrift = """
+  @Test
+  fun `Emit @JvmName file-per-namespace annotations`() {
+    val thrift =
+        """
             |namespace kt test.consts
             |
             |const i32 FooNum = 42
-        """.trimMargin()
+        """
+            .trimMargin()
 
-        val file = generate(thrift) {
-            emitJvmName()
-            filePerNamespace()
-            emitFileComment(false)
-        }.single()
+    val file =
+        generate(thrift) {
+              emitJvmName()
+              filePerNamespace()
+              emitFileComment(false)
+            }
+            .single()
 
-        file.shouldCompile()
+    file.shouldCompile()
 
-        file.toString() shouldBe """
+    file.toString() shouldBe
+        """
             |@file:JvmName("ThriftTypes")
             |
             |package test.consts
@@ -465,26 +511,32 @@ class KotlinCodeGeneratorTest {
             |
             |public const val FooNum: Int = 42
             |
-            """.trimMargin()
-    }
+            """
+            .trimMargin()
+  }
 
-    @Test
-    fun `Emit @JvmName file-per-type annotations`() {
-        val thrift = """
+  @Test
+  fun `Emit @JvmName file-per-type annotations`() {
+    val thrift =
+        """
             |namespace kt test.consts
             |
             |const i32 FooNum = 42
-        """.trimMargin()
+        """
+            .trimMargin()
 
-        val file = generate(thrift) {
-            emitJvmName()
-            filePerType()
-            emitFileComment(false)
-        }.single()
+    val file =
+        generate(thrift) {
+              emitJvmName()
+              filePerType()
+              emitFileComment(false)
+            }
+            .single()
 
-        file.shouldCompile()
+    file.shouldCompile()
 
-        file.toString() shouldBe """
+    file.toString() shouldBe
+        """
             |@file:JvmName("Constants")
             |
             |package test.consts
@@ -494,12 +546,14 @@ class KotlinCodeGeneratorTest {
             |
             |public const val FooNum: Int = 42
             |
-            """.trimMargin()
-    }
+            """
+            .trimMargin()
+  }
 
-    @Test
-    fun `union generate sealed`() {
-        val thrift = """
+  @Test
+  fun `union generate sealed`() {
+    val thrift =
+        """
             |namespace kt test.coro
             |
             |union Union {
@@ -508,19 +562,24 @@ class KotlinCodeGeneratorTest {
             |  3: string Baz;
             |  4: i32 NotFoo;
             |}
-        """.trimMargin()
+        """
+            .trimMargin()
 
-        val file = generate(thrift)
-        file.shouldCompile()
+    val file = generate(thrift)
+    file.shouldCompile()
 
-        file.single().toString() should contain("""
+    file.single().toString() should
+        contain(
+            """
             |sealed class Union : Struct {
-        """.trimMargin())
-    }
+        """
+                .trimMargin())
+  }
 
-    @Test
-    fun `union properties as data`() {
-        val thrift = """
+  @Test
+  fun `union properties as data`() {
+    val thrift =
+        """
             |namespace kt test.coro
             |
             |union Union {
@@ -529,12 +588,15 @@ class KotlinCodeGeneratorTest {
             |  3: string Baz;
             |  4: i32 NotFoo;
             |}
-        """.trimMargin()
+        """
+            .trimMargin()
 
-        val file = generate(thrift)
-        file.shouldCompile()
+    val file = generate(thrift)
+    file.shouldCompile()
 
-        file.single().toString() should contain("""
+    file.single().toString() should
+        contain(
+            """
             |
             |  public data class Foo(
             |    public val `value`: Int,
@@ -560,12 +622,14 @@ class KotlinCodeGeneratorTest {
             |    override fun toString(): String = "Union(NotFoo=${'$'}value)"
             |  }
             |
-        """.trimMargin())
-    }
+        """
+                .trimMargin())
+  }
 
-    @Test
-    fun `union wont generate struct when disabled`() {
-        val thrift = """
+  @Test
+  fun `union wont generate struct when disabled`() {
+    val thrift =
+        """
             |namespace kt test.coro
             |
             |union Union {
@@ -574,23 +638,31 @@ class KotlinCodeGeneratorTest {
             |  3: string Baz;
             |  4: i32 NotFoo;
             |}
-        """.trimMargin()
+        """
+            .trimMargin()
 
-        val file = generate(thrift) //{ shouldImplementStruct() }
-        file.shouldCompile()
+    val file = generate(thrift) // { shouldImplementStruct() }
+    file.shouldCompile()
 
-        file.single().toString() shouldNot contain("""
+    file.single().toString() shouldNot
+        contain(
+            """
             |  : Struct
-        """.trimMargin())
+        """
+                .trimMargin())
 
-        file.single().toString() shouldNot contain("""
+    file.single().toString() shouldNot
+        contain(
+            """
             |  write
-        """.trimMargin())
-    }
+        """
+                .trimMargin())
+  }
 
-    @Test
-    fun `union generate read function without builder`() {
-        val thrift = """
+  @Test
+  fun `union generate read function without builder`() {
+    val thrift =
+        """
             |namespace kt test.coro
             |
             |union Union {
@@ -599,12 +671,15 @@ class KotlinCodeGeneratorTest {
             |  3: string Baz;
             |  4: i32 NotFoo;
             |}
-        """.trimMargin()
+        """
+            .trimMargin()
 
-        val file = generate(thrift)
-        file.shouldCompile()
+    val file = generate(thrift)
+    file.shouldCompile()
 
-        file.single().toString() should contain("""
+    file.single().toString() should
+        contain(
+            """
             |    override suspend fun read(protocol: Protocol): Union {
             |      protocol.readStructBegin()
             |      var result : Union? = null
@@ -653,12 +728,14 @@ class KotlinCodeGeneratorTest {
             |      protocol.readStructEnd()
             |      return result ?: error("unreadable")
             |    }
-        """.trimMargin())
-    }
+        """
+                .trimMargin())
+  }
 
-    @Test
-    fun `union generate Adapter`() {
-        val thrift = """
+  @Test
+  fun `union generate Adapter`() {
+    val thrift =
+        """
             |namespace kt test.coro
             |
             |union Union {
@@ -667,36 +744,46 @@ class KotlinCodeGeneratorTest {
             |  3: string Baz;
             |  4: i32 NotFoo;
             |}
-        """.trimMargin()
+        """
+            .trimMargin()
 
-        val file = generate(thrift)
-        file.shouldCompile()
+    val file = generate(thrift)
+    file.shouldCompile()
 
-        file.single().toString() should contain("""
+    file.single().toString() should
+        contain(
+            """
             |  private class UnionAdapter : Adapter<Union> {
-        """.trimMargin())
-    }
+        """
+                .trimMargin())
+  }
 
-    @Test
-    fun `empty union generate non-sealed class`() {
-        val thrift = """
+  @Test
+  fun `empty union generate non-sealed class`() {
+    val thrift =
+        """
             |namespace kt test.coro
             |
             |union Union {
             |}
-        """.trimMargin()
+        """
+            .trimMargin()
 
-        val file = generate(thrift)
-        file.shouldCompile()
+    val file = generate(thrift)
+    file.shouldCompile()
 
-        file.single().toString() should contain("""
+    file.single().toString() should
+        contain(
+            """
             |class Union() : Struct {
-        """.trimMargin())
-    }
+        """
+                .trimMargin())
+  }
 
-    @Test
-    fun `struct with union`() {
-        val thrift = """
+  @Test
+  fun `struct with union`() {
+    val thrift =
+        """
             |namespace kt test.coro
             |
             |struct Bonk {
@@ -707,12 +794,15 @@ class KotlinCodeGeneratorTest {
             |union UnionStruct {
             |  1: Bonk Struct
             |}
-        """.trimMargin()
+        """
+            .trimMargin()
 
-        val file = generate(thrift)
-        file.shouldCompile()
+    val file = generate(thrift)
+    file.shouldCompile()
 
-        file.single().toString() should contain("""
+    file.single().toString() should
+        contain(
+            """
             |public sealed class UnionStruct : Struct {
             |  override suspend fun write(protocol: Protocol) {
             |    ADAPTER.write(protocol, this)
@@ -723,12 +813,14 @@ class KotlinCodeGeneratorTest {
             |  ) : UnionStruct() {
             |    override fun toString(): String = "UnionStruct(Struct=${'$'}value)"
             |  }
-        """.trimMargin())
-    }
+        """
+                .trimMargin())
+  }
 
-    @Test
-    fun `union with default value`() {
-        val thrift = """
+  @Test
+  fun `union with default value`() {
+    val thrift =
+        """
             namespace kt test.union
 
             union HasDefault {
@@ -737,20 +829,25 @@ class KotlinCodeGeneratorTest {
                 3: i32 int = 16;
                 4: i64 long;
             }
-        """.trimIndent()
+        """
+            .trimIndent()
 
-        val file = generate(thrift)
-        file.shouldCompile()
+    val file = generate(thrift)
+    file.shouldCompile()
 
-        file.single().toString() should contain("""
+    file.single().toString() should
+        contain(
+            """
             |    @JvmField
             |    public val DEFAULT: HasDefault = Int(16)
-        """.trimMargin())
-    }
+        """
+                .trimMargin())
+  }
 
-    @Test
-    fun `enum fail on unknown value`() {
-        val thrift = """
+  @Test
+  fun `enum fail on unknown value`() {
+    val thrift =
+        """
             |namespace kt test.struct
             |
             |enum TestEnum { FOO }
@@ -758,9 +855,11 @@ class KotlinCodeGeneratorTest {
             |struct HasEnum {
             |  1: optional TestEnum field = TestEnum.FOO;
             |}
-        """.trimMargin()
+        """
+            .trimMargin()
 
-        val expected = """
+    val expected =
+        """
           1 -> {
             if (fieldMeta.typeId == TType.I32) {
               val field_ = protocol.readI32().let {
@@ -772,14 +871,15 @@ class KotlinCodeGeneratorTest {
             }
           }"""
 
-        val file = generate(thrift)
-        file.shouldCompile()
-        file.single().toString() shouldContain expected
-    }
+    val file = generate(thrift)
+    file.shouldCompile()
+    file.single().toString() shouldContain expected
+  }
 
-    @Test
-    fun `enum don't fail on unknown value`() {
-        val thrift = """
+  @Test
+  fun `enum don't fail on unknown value`() {
+    val thrift =
+        """
             |namespace kt test.struct
             |
             |enum TestEnum { FOO }
@@ -788,9 +888,11 @@ class KotlinCodeGeneratorTest {
             |  1: optional TestEnum field1 = TestEnum.FOO;
             |  2: required TestEnum field2 = TestEnum.FOO;
             |}
-        """.trimMargin()
+        """
+            .trimMargin()
 
-        val expected = """
+    val expected =
+        """
           1 -> {
             if (fieldMeta.typeId == TType.I32) {
               val field1 = protocol.readI32().let {
@@ -814,16 +916,15 @@ class KotlinCodeGeneratorTest {
             }
           }"""
 
-        val file = generate(thrift) {
-            failOnUnknownEnumValues(false)
-        }
-        file.shouldCompile()
-        file.single().toString() shouldContain expected
-    }
+    val file = generate(thrift) { failOnUnknownEnumValues(false) }
+    file.shouldCompile()
+    file.single().toString() shouldContain expected
+  }
 
-    @Test
-    fun `enum don't fail on unknown value without builder`() {
-        val thrift = """
+  @Test
+  fun `enum don't fail on unknown value without builder`() {
+    val thrift =
+        """
             |namespace kt test.struct
             |
             |enum TestEnum { FOO }
@@ -832,9 +933,11 @@ class KotlinCodeGeneratorTest {
             |  1: optional TestEnum field1 = TestEnum.FOO;
             |  2: required TestEnum field2 = TestEnum.FOO;
             |}
-        """.trimMargin()
+        """
+            .trimMargin()
 
-        val expected = """
+    val expected =
+        """
           1 -> {
             if (fieldMeta.typeId == TType.I32) {
               val field1 = protocol.readI32().let {
@@ -858,14 +961,15 @@ class KotlinCodeGeneratorTest {
             }
           }"""
 
-        val file = generate(thrift) { failOnUnknownEnumValues(false) }
-        file.shouldCompile()
-        file.single().toString() shouldContain expected
-    }
+    val file = generate(thrift) { failOnUnknownEnumValues(false) }
+    file.shouldCompile()
+    file.single().toString() shouldContain expected
+  }
 
-    @Test
-    fun `collection types do not use Java collections by default`() {
-        val thrift = """
+  @Test
+  fun `collection types do not use Java collections by default`() {
+    val thrift =
+        """
             |namespace kt test.lists
             |
             |const list<i32> FOO = [1, 2, 3];
@@ -881,68 +985,76 @@ class KotlinCodeGeneratorTest {
             |service HasListMethodArg {
             |  list<i8> sendThatList(1: list<i8> byteList);
             |}
-        """.trimMargin()
+        """
+            .trimMargin()
 
-        for (file in generate(thrift)) {
-            val kt = file.toString()
-            kt shouldNotContain "java.util"
-        }
+    for (file in generate(thrift)) {
+      val kt = file.toString()
+      kt shouldNotContain "java.util"
     }
+  }
 
-    @Test
-    fun `does not import java Exception or IOException`() {
-        val thrift = """
+  @Test
+  fun `does not import java Exception or IOException`() {
+    val thrift =
+        """
             |namespace kt test.exceptions
             |
             |exception Foo {
             |  1: string message;
             |}
-        """.trimMargin()
+        """
+            .trimMargin()
 
-        for (file in generate(thrift)) {
-            val kt = file.toString()
+    for (file in generate(thrift)) {
+      val kt = file.toString()
 
-            kt shouldNotContain "import java.Exception"
-            kt shouldNotContain "import java.io.IOException"
-        }
+      kt shouldNotContain "import java.Exception"
+      kt shouldNotContain "import java.io.IOException"
     }
+  }
 
-    @Test
-    fun `uses default Throws instead of jvm Throws`() {
-        val thrift = """
+  @Test
+  fun `uses default Throws instead of jvm Throws`() {
+    val thrift =
+        """
             |namespace kt test.throws
             |
             |service Frobbler {
             |  void frobble(1: string bizzle);
             |}
-        """.trimMargin()
+        """
+            .trimMargin()
 
-        for (file in generate(thrift)) {
-            val kt = file.toString()
+    for (file in generate(thrift)) {
+      val kt = file.toString()
 
-            kt shouldContain "@Throws"
-            kt shouldNotContain "import kotlin.jvm.Throws"
-        }
+      kt shouldContain "@Throws"
+      kt shouldNotContain "import kotlin.jvm.Throws"
     }
+  }
 
-    @Test
-    fun `empty structs do not rely on javaClass for hashCode`() {
-        val thrift = """
+  @Test
+  fun `empty structs do not rely on javaClass for hashCode`() {
+    val thrift =
+        """
             |namespace kt test.empty
             |
             |struct Empty {}
-        """.trimMargin()
+        """
+            .trimMargin()
 
-        val file = generate(thrift).single()
-        val kt = file.toString()
+    val file = generate(thrift).single()
+    val kt = file.toString()
 
-        kt shouldContain "hashCode(): Int = \"test.empty.Empty\".hashCode()"
-        kt shouldNotContain "javaClass"
-    }
+    kt shouldContain "hashCode(): Int = \"test.empty.Empty\".hashCode()"
+    kt shouldNotContain "javaClass"
+  }
 
-    @Test
-    fun `big enum generation`() {
-        val thrift = """
+  @Test
+  fun `big enum generation`() {
+    val thrift =
+        """
             namespace kt test.enum
             
             enum Foo {
@@ -950,9 +1062,11 @@ class KotlinCodeGeneratorTest {
               SECOND_VALUE = 1,
               THIRD_VALUE = 2
             }
-        """.trimIndent()
+        """
+            .trimIndent()
 
-        val expected = """
+    val expected =
+        """
             |public enum class Foo {
             |  FIRST_VALUE,
             |  SECOND_VALUE,
@@ -977,22 +1091,24 @@ class KotlinCodeGeneratorTest {
             |    }
             |  }
             |}
-        """.trimMargin()
+        """
+            .trimMargin()
 
-        val notExpected = """
+    val notExpected =
+        """
             public enum class Foo(value: Int)
-        """.trimIndent()
+        """
+            .trimIndent()
 
-        val file = generate(thrift) {
-            emitBigEnums()
-        }
-        file.single().toString() shouldContain expected
-        file.single().toString() shouldNotContain notExpected
-    }
+    val file = generate(thrift) { emitBigEnums() }
+    file.single().toString() shouldContain expected
+    file.single().toString() shouldNotContain notExpected
+  }
 
-    @Test
-    fun `struct-valued constant`() {
-        val thrift = """
+  @Test
+  fun `struct-valued constant`() {
+    val thrift =
+        """
             |namespace kt test.struct
             |
             |struct Foo {
@@ -1030,9 +1146,11 @@ class KotlinCodeGeneratorTest {
             |  "baz": Baz.ONE,
             |  "quux": THE_QUUX
             |}
-        """.trimMargin()
+        """
+            .trimMargin()
 
-        val expected = """
+    val expected =
+        """
             |public val THE_FOO: Foo = Foo(
             |      text = "some text",
             |      bar = Bar(
@@ -1041,34 +1159,38 @@ class KotlinCodeGeneratorTest {
             |      baz = test.struct.Baz.ONE,
             |      quux = test.struct.THE_QUUX,
             |    )
-        """.trimMargin()
+        """
+            .trimMargin()
 
-        val file = generate(thrift).single()
+    val file = generate(thrift).single()
 
-        file.toString() shouldContain expected
-        file.shouldCompile()
-    }
+    file.toString() shouldContain expected
+    file.shouldCompile()
+  }
 
-    @Test
-    fun `Files should add generated comment`() {
-        val thrift = """
+  @Test
+  fun `Files should add generated comment`() {
+    val thrift =
+        """
             |namespace kt test.comment
             |
             |const i32 FooNum = 42
-        """.trimMargin()
+        """
+            .trimMargin()
 
-        val file = generate(thrift) { emitFileComment(true) }
-                .single()
-        file.shouldCompile()
+    val file = generate(thrift) { emitFileComment(true) }.single()
+    file.shouldCompile()
 
-        val lines = file.toString().split("\n")
-        lines[0] shouldBe "// Automatically generated by the Thrifty compiler; do not edit!"
-        lines[1] shouldMatch """// Generated on: \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\S+)?Z""".toRegex()
-    }
+    val lines = file.toString().split("\n")
+    lines[0] shouldBe "// Automatically generated by the Thrifty compiler; do not edit!"
+    lines[1] shouldMatch
+        """// Generated on: \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\S+)?Z""".toRegex()
+  }
 
-    @Test
-    fun `struct const with default field value using data classes`() {
-        val thrift = """
+  @Test
+  fun `struct const with default field value using data classes`() {
+    val thrift =
+        """
             |namespace kt test.struct_const.default_fields
             |
             |struct Foo {
@@ -1077,21 +1199,25 @@ class KotlinCodeGeneratorTest {
             |}
             |
             |const Foo THE_FOO = {"number": 42}
-        """.trimMargin()
+        """
+            .trimMargin()
 
-        val file = generate(thrift)
+    val file = generate(thrift)
 
-        file.toString() shouldContain """
+    file.toString() shouldContain
+        """
             |public val THE_FOO: Foo = Foo(
             |      text = "FOO",
             |      number = 42,
             |    )
-        """.trimMargin()
-    }
+        """
+            .trimMargin()
+  }
 
-    @Test
-    fun `constant reference`() {
-        val thrift = """
+  @Test
+  fun `constant reference`() {
+    val thrift =
+        """
             |namespace kt test.const_ref
             |
             |struct Node {
@@ -1102,30 +1228,32 @@ class KotlinCodeGeneratorTest {
             |const Node C = {"n": [A]}
             |const Node B = {"n": [A]}
             |const Node A = {}
-        """.trimMargin()
+        """
+            .trimMargin()
 
-        val files = generate(thrift) { filePerType() }
-        val constants = files.single { it.name.contains("Constants") }
-        val kotlinText = constants.toString()
+    val files = generate(thrift) { filePerType() }
+    val constants = files.single { it.name.contains("Constants") }
+    val kotlinText = constants.toString()
 
-        val positionOfA = kotlinText.indexOf("val A: Node")
-        val positionOfD = kotlinText.indexOf("val D: Node")
+    val positionOfA = kotlinText.indexOf("val A: Node")
+    val positionOfD = kotlinText.indexOf("val D: Node")
 
-        positionOfA shouldBeLessThan positionOfD
+    positionOfA shouldBeLessThan positionOfD
 
-        files.shouldCompile()
-    }
+    files.shouldCompile()
+  }
 
-    private fun generate(thrift: String, config: (KotlinCodeGenerator.() -> KotlinCodeGenerator)? = null): List<FileSpec> {
-        val configOrDefault = config ?: { emitFileComment(false) }
-        return KotlinCodeGenerator()
-                .run(configOrDefault)
-                .generate(load(thrift))
-    }
+  private fun generate(
+      thrift: String,
+      config: (KotlinCodeGenerator.() -> KotlinCodeGenerator)? = null
+  ): List<FileSpec> {
+    val configOrDefault = config ?: { emitFileComment(false) }
+    return KotlinCodeGenerator().run(configOrDefault).generate(load(thrift))
+  }
 
-    private fun load(thrift: String): Schema {
-        val file = File(tempDir, "test.thrift").also { it.writeText(thrift) }
-        val loader = Loader().apply { addThriftFile(file.toPath()) }
-        return loader.load()
-    }
+  private fun load(thrift: String): Schema {
+    val file = File(tempDir, "test.thrift").also { it.writeText(thrift) }
+    val loader = Loader().apply { addThriftFile(file.toPath()) }
+    return loader.load()
+  }
 }

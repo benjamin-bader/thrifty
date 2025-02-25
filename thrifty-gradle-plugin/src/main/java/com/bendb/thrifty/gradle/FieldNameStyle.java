@@ -30,7 +30,7 @@ package com.bendb.thrifty.gradle;
  *       <tr>
  *         <th>Name</th>
  *         <th>Description</th>
-*        </tr>
+ *        </tr>
  *     </thead>
  *     <tbody>
  *         <tr>
