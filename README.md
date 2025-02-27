@@ -159,10 +159,10 @@ The latter looks like this:
 ```kotlin
 package com.foo.bar
 
+import com.bendb.thrifty.Adapter
 import com.bendb.thrifty.Struct
 import com.bendb.thrifty.TType
 import com.bendb.thrifty.ThriftField
-import com.bendb.thrifty.kotlin.Adapter
 import com.bendb.thrifty.protocol.Protocol
 import com.bendb.thrifty.util.ProtocolUtil
 import kotlin.Long
