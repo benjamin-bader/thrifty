@@ -87,8 +87,7 @@ public abstract class GenerateThriftSourcesWorkAction implements WorkAction<Gene
             LOGGER.warn("Error clearing stale output", e);
         }
 
-        SerializableThriftOptions opts = getParameters().getThriftOptions().get();
-        generateKotlinThrifts(schema, opts);
+        generateKotlinThrifts(schema);
     }
 
     private void reportThriftException(LoadFailedException e) {
@@ -131,34 +130,36 @@ public abstract class GenerateThriftSourcesWorkAction implements WorkAction<Gene
         });
     }
 
-    private void generateKotlinThrifts(Schema schema, SerializableThriftOptions opts) throws IOException {
-        KotlinCodeGenerator gen = new KotlinCodeGenerator(policyFromNameStyle(opts.getNameStyle()))
+    private void generateKotlinThrifts(Schema schema) throws IOException {
+        GenerateThriftSourcesWorkParams params = getParameters();
+        KotlinCodeGenerator gen = new KotlinCodeGenerator(
+                        policyFromNameStyle(params.getNameStyle().get()))
                 .emitJvmName()
                 .filePerType()
-                .failOnUnknownEnumValues(!opts.isAllowUnknownEnumValues());
+                .failOnUnknownEnumValues(!params.getIsAllowUnknownEnumValues().get());
 
-        if (opts.isParcelable()) {
+        if (params.getIsParcelable().get()) {
             gen.parcelize();
         }
 
-        if (!opts.isGenerateServiceClients()) {
+        if (!params.getIsGenerateServiceClients().get()) {
             gen.omitServiceClients();
         }
 
-        if (opts.isGenerateServer()) {
+        if (params.getIsGenerateServer().get()) {
             gen.generateServer();
         }
 
-        if (opts.getListType() != null) {
-            gen.listClassName(opts.getListType());
+        if (params.getListType().isPresent()) {
+            gen.listClassName(params.getListType().get());
         }
 
-        if (opts.getSetType() != null) {
-            gen.setClassName(opts.getSetType());
+        if (params.getSetType().isPresent()) {
+            gen.setClassName(params.getSetType().get());
         }
 
-        if (opts.getMapType() != null) {
-            gen.mapClassName(opts.getMapType());
+        if (params.getMapType().isPresent()) {
+            gen.mapClassName(params.getMapType().get());
         }
 
         TypeProcessorService typeProcessorService = TypeProcessorService.getInstance();

@@ -37,7 +37,21 @@ public interface GenerateThriftSourcesWorkParams extends WorkParameters {
 
     ConfigurableFileCollection getSource();
 
-    Property<SerializableThriftOptions> getThriftOptions();
-
     Property<ShowStacktrace> getShowStacktrace();
+
+    Property<Boolean> getIsGenerateServiceClients();
+
+    Property<FieldNameStyle> getNameStyle();
+
+    Property<String> getListType();
+
+    Property<String> getSetType();
+
+    Property<String> getMapType();
+
+    Property<Boolean> getIsParcelable();
+
+    Property<Boolean> getIsAllowUnknownEnumValues();
+
+    Property<Boolean> getIsGenerateServer();
 }
