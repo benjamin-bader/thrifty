@@ -29,6 +29,8 @@ import org.gradle.api.tasks.Optional;
 
 /** Thrift options applicable to all supported languages. */
 public class ThriftOptions implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private boolean generateServiceClients = true;
     private FieldNameStyle nameStyle = FieldNameStyle.DEFAULT;
     private String listType = null;
@@ -37,17 +39,6 @@ public class ThriftOptions implements Serializable {
     private boolean parcelable = false;
     private boolean allowUnknownEnumValues = false;
     private boolean generateServer = false;
-
-    void setWorkerParams(GenerateThriftSourcesWorkParams params) {
-        params.getIsGenerateServiceClients().set(generateServiceClients);
-        params.getNameStyle().set(nameStyle);
-        params.getListType().set(listType);
-        params.getSetType().set(setType);
-        params.getMapType().set(mapType);
-        params.getIsParcelable().set(parcelable);
-        params.getIsAllowUnknownEnumValues().set(allowUnknownEnumValues);
-        params.getIsGenerateServer().set(generateServer);
-    }
 
     @Input
     public boolean getGenerateServiceClients() {
