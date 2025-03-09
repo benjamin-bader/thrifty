@@ -38,6 +38,17 @@ public class ThriftOptions implements Serializable {
     private boolean allowUnknownEnumValues = false;
     private boolean generateServer = false;
 
+    void setWorkerParams(GenerateThriftSourcesWorkParams params) {
+        params.getIsGenerateServiceClients().set(generateServiceClients);
+        params.getNameStyle().set(nameStyle);
+        params.getListType().set(listType);
+        params.getSetType().set(setType);
+        params.getMapType().set(mapType);
+        params.getIsParcelable().set(parcelable);
+        params.getIsAllowUnknownEnumValues().set(allowUnknownEnumValues);
+        params.getIsGenerateServer().set(generateServer);
+    }
+
     @Input
     public boolean getGenerateServiceClients() {
         return generateServiceClients;
