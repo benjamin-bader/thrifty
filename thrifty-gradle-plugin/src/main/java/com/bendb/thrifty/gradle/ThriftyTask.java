@@ -73,7 +73,7 @@ public abstract class ThriftyTask extends SourceTask {
             params.getIncludePath().set(getIncludePath());
             params.getSource().from(getSource());
             params.getShowStacktrace().set(getShowStacktrace());
-            getThriftOptions().get().setWorkerParams(params);
+            params.getThriftOptions().set(getThriftOptions().get());
         });
     }
 }

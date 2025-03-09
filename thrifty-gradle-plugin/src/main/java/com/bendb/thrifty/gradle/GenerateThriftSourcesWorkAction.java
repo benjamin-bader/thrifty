@@ -132,34 +132,34 @@ public abstract class GenerateThriftSourcesWorkAction implements WorkAction<Gene
 
     private void generateKotlinThrifts(Schema schema) throws IOException {
         GenerateThriftSourcesWorkParams params = getParameters();
-        KotlinCodeGenerator gen = new KotlinCodeGenerator(
-                        policyFromNameStyle(params.getNameStyle().get()))
+        ThriftOptions opts = params.getThriftOptions().get();
+        KotlinCodeGenerator gen = new KotlinCodeGenerator(policyFromNameStyle(opts.getNameStyle()))
                 .emitJvmName()
                 .filePerType()
-                .failOnUnknownEnumValues(!params.getIsAllowUnknownEnumValues().get());
+                .failOnUnknownEnumValues(!opts.getAllowUnknownEnumValues());
 
-        if (params.getIsParcelable().get()) {
+        if (opts.getParcelable()) {
             gen.parcelize();
         }
 
-        if (!params.getIsGenerateServiceClients().get()) {
+        if (!opts.getGenerateServiceClients()) {
             gen.omitServiceClients();
         }
 
-        if (params.getIsGenerateServer().get()) {
+        if (opts.isGenerateServer()) {
             gen.generateServer();
         }
 
-        if (params.getListType().isPresent()) {
-            gen.listClassName(params.getListType().get());
+        if (opts.getListType() != null) {
+            gen.listClassName(opts.getListType());
         }
 
-        if (params.getSetType().isPresent()) {
-            gen.setClassName(params.getSetType().get());
+        if (opts.getSetType() != null) {
+            gen.setClassName(opts.getSetType());
         }
 
-        if (params.getMapType().isPresent()) {
-            gen.mapClassName(params.getMapType().get());
+        if (opts.getMapType() != null) {
+            gen.mapClassName(opts.getMapType());
         }
 
         TypeProcessorService typeProcessorService = TypeProcessorService.getInstance();
