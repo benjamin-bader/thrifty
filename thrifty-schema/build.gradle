@@ -42,28 +42,3 @@ dependencies {
 
     testImplementation libs.bundles.testing
 }
-
-// Antlr doesn't interact nicely with tasks from Kotlin or Dokka (or non-java tasks in general),
-// so we need to manually specify the dependency between the two antlr tasks and anything that
-// might consume their output.
-def mainTaskNames = [
-        'compileKotlin',
-        'javaSourcesJar',
-        'kotlinSourcesJar',
-        'sourcesJar',
-        'spotlessJava',
-        'dokkaHtml',
-        'dokkaGeneratePublicationHtml',
-].toSet()
-
-def testTaskNames = [
-        'compileTestKotlin'
-].toSet()
-
-tasks.matching { mainTaskNames.contains(it.name) }.configureEach {
-    dependsOn 'generateGrammarSource'
-}
-
-tasks.matching { testTaskNames.contains(it.name) }.configureEach {
-    dependsOn 'generateTestGrammarSource'
-}
