@@ -28,6 +28,7 @@ import com.bendb.thrifty.Struct
 import com.bendb.thrifty.TType
 import com.bendb.thrifty.ThriftException
 import com.bendb.thrifty.ThriftField
+import com.bendb.thrifty.compiler.spi.ThriftAnnotations
 import com.bendb.thrifty.compiler.spi.TypeProcessor
 import com.bendb.thrifty.protocol.MessageMetadata
 import com.bendb.thrifty.protocol.Protocol
@@ -80,6 +81,7 @@ import com.squareup.kotlinpoet.NameAllocator
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
+import com.squareup.kotlinpoet.Taggable
 import com.squareup.kotlinpoet.TypeAliasSpec
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
@@ -122,6 +124,14 @@ private object ClassNames {
   val LINKED_HASH_SET = ClassName("kotlin.collections", "LinkedHashSet")
   val LINKED_HASH_MAP = ClassName("kotlin.collections", "LinkedHashMap")
   val IO_EXCEPTION = ClassName("okio", "IOException")
+}
+
+private fun <T : Taggable.Builder<T>> Taggable.Builder<T>.tagWithAnnotations(
+    annotations: Map<String, String>?
+) {
+  if (annotations?.isNotEmpty() == true) {
+    tag(ThriftAnnotations::class, ThriftAnnotations(annotations))
+  }
 }
 
 /**
@@ -424,10 +434,14 @@ class KotlinCodeGenerator(fieldNamingPolicy: FieldNamingPolicy = FieldNamingPoli
       if (member.isDeprecated) enumMemberSpec.addAnnotation(makeDeprecated())
       if (member.hasJavadoc) enumMemberSpec.addKdoc("%L", member.documentation)
 
+      enumMemberSpec.tagWithAnnotations(member.annotations)
+
       val name = nameAllocator.get(member)
       typeBuilder.addEnumConstant(name, enumMemberSpec.build())
       findByValue.addStatement("%L -> %L", member.value, name)
     }
+
+    typeBuilder.tagWithAnnotations(enumType.annotations)
 
     val companion =
         TypeSpec.companionObjectBuilder()
@@ -517,6 +531,8 @@ class KotlinCodeGenerator(fieldNamingPolicy: FieldNamingPolicy = FieldNamingPoli
               .jvmField()
               .addAnnotation(thriftField)
 
+      prop.tagWithAnnotations(field.annotations)
+
       if (field.hasJavadoc) prop.addKdoc("%L", field.documentation)
       if (field.isObfuscated) prop.addAnnotation(Obfuscated::class)
       if (field.isRedacted) prop.addAnnotation(Redacted::class)
@@ -524,6 +540,8 @@ class KotlinCodeGenerator(fieldNamingPolicy: FieldNamingPolicy = FieldNamingPoli
       ctorBuilder.addParameter(param.build())
       typeBuilder.addProperty(prop.build())
     }
+
+    typeBuilder.tagWithAnnotations(struct.annotations)
 
     val adapterTypeName = ClassName(struct.kotlinNamespace, struct.name, "${struct.name}Adapter")
     val adapterInterfaceTypeName = Adapter::class.asTypeName().parameterizedBy(struct.typeName)
@@ -588,6 +606,8 @@ class KotlinCodeGenerator(fieldNamingPolicy: FieldNamingPolicy = FieldNamingPoli
           if (struct.hasJavadoc) addKdoc("%L", struct.documentation)
         }
 
+    typeBuilder.tagWithAnnotations(struct.annotations)
+
     var defaultValueTypeName: ClassName? = null
     val nameAllocator = nameAllocators[struct]
     for (field in struct.fields) {
@@ -607,6 +627,8 @@ class KotlinCodeGenerator(fieldNamingPolicy: FieldNamingPolicy = FieldNamingPoli
               .addProperty(propertySpec.build())
               .primaryConstructor(propConstructor.build())
               .tag(FieldIdMarker(field.id))
+
+      dataPropBuilder.tagWithAnnotations(field.annotations)
 
       val toStringBody = buildCodeBlock {
         add("return \"${struct.name}($name=")
