@@ -1,6 +1,7 @@
 build/
 out/
 .gradle/
+.kotlin/
 local.properties
 .idea/
 .git/
