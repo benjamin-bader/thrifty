@@ -34,7 +34,7 @@ package com.bendb.thrifty.schema
  * [this blog post](http://lionet.livejournal.com/66899.html) which, though being five years old at
  * the time of writing, is still relevant. Read on for my own interpretation of things.
  *
- * <h2>What does the official implementation do?</h2>
+ * ## What does the official implementation do?
  *
  * There are two times when requiredness modifiers affect behavior - during serialization and during
  * struct validation. During serialization, they affect whether a field will be written to the
@@ -43,59 +43,43 @@ package com.bendb.thrifty.schema
  * implementation's Java code generator yields the following tables, describing the actual impact of
  * the modifiers:
  *
- * <h3>Will an unset field be serialized?</h3>
+ * ### Will an unset field be serialized?
  *
  * The question refers to whether writing a struct to a protocol will result in a beginField, field,
  * endField sequence being emitted.
- * <table summary="Will a field be serialized?" border="1"> <thead>
- * <tr> <th></th> <th>Value types</th> <th>Objects</th> </tr> </thead> <tbody>
- * <tr>
- * <td><strong>Default</strong></td>
- * <td>always*</td>
- * <td>if set</td> </tr>
- * <tr>
- * <td><strong>Optional</strong></td>
- * <td>if set</td>
- * <td>if set</td> </tr>
- * <tr>
- * <td><strong>Required</strong></td>
- * <td>always*</td>
- * <td>always</td> </tr> </tbody> </table>
+ *
+ * |              | Value types | Objects |
+ * |--------------|-------------|---------|
+ * | **Default**  | always*     | if set  |
+ * | **Optional** | if set      | if set  |
+ * | **Required** | always*     | always  |
  *
  * As can be seen, serialization behavior only changes for value types.
  *
- * <h3>Validation: Will a field potentially cause validation failures?</h3>
+ * ### Validation: Will a field potentially cause validation failures?
  *
  * Validation happens at the beginning of serialization and the end of deserialization. In both
  * cases, the following table describes the impact of a missing field:
- * <table summary="Will a missing field fail validation?" border="1"> <thead>
- * <tr> <th></th> <th>Value Type</th> <th>Object</th> </tr> </thead> <tbody>
- * <tr>
- * <td><strong>Default</strong></td>
- * <td>no</td>
- * <td>no</td> </tr>
- * <tr>
- * <td><strong>Optional</strong></td>
- * <td>no</td>
- * <td>no</td> </tr>
- * <tr>
- * <td><strong>Required</strong></td>
- * <td>only on deserialization</td>
- * <td>yes</td> </tr> </tbody> </table>
  *
- * <h2>What does Thrifty do?</h2>
+ * |              | Value Type              | Object |
+ * |--------------|-------------------------|--------|
+ * | **Default**  | no                      | no     |
+ * | **Optional** | no                      | no     |
+ * | **Required** | only on deserialization | yes    |
+ *
+ * ## What does Thrifty do?
  *
  * For a few reasons, Thrifty has a simpler decision matrix. As noted, we do not provide server
  * implementations, and so are unconcerned with the distinction between standard and RPC-result
  * serialization. Second, we do not track `isSet` for fields - if a field is `null`, it is unset. As
  * such, we differ from Apache in a few minor ways.
  *
- * <h3>Missing required value-types always fail validation</h3>
+ * ### Missing required value-types always fail validation
  *
  * In Apache, a struct can pass validation if it has required-but-unset value-type fields. In
  * Thrifty, this is not possible - structs cannot be built without all required members.
  *
- * <h3>Missing, default, value-types are not serialized</h3>
+ * ### Missing, default, value-types are not serialized
  *
  * This is probably the most significant difference. Apache will serialize unset value-type fields
  * as whatever default value may be there. It is technically possible for non-zero values that are
