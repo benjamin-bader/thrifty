@@ -283,13 +283,13 @@ class LoaderTest {
 
     fileNestedAThrift.writeText(
         """
-                namespace java com.microsoft.thrifty.test.crazyIncludeReferencedConst
+                namespace java com.bendb.thrifty.test.crazyIncludeReferencedConst
                 
                 const string HELLO = "hello"
             """)
     fileAnotherAThrift.writeText(
         """
-                namespace java com.microsoft.thrifty.test.crazyIncludeReferencedConst
+                namespace java com.bendb.thrifty.test.crazyIncludeReferencedConst
                 
                 const string HELLO = "actually goodbye"
             """)
@@ -297,7 +297,7 @@ class LoaderTest {
         """
                 include 'another_a.thrift'
                 include 'nested/a.thrift'
-                namespace java com.microsoft.thrifty.test.crazyIncludeReferencedConst
+                namespace java com.bendb.thrifty.test.crazyIncludeReferencedConst
                 
                 const string HELLO_AGAIN = a.HELLO
             """)
