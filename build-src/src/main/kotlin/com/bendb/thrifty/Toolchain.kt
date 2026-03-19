@@ -28,11 +28,11 @@ import org.gradle.jvm.toolchain.JavaToolchainSpec
  * constraints should be added here, not in the java or kotlin
  * plugins.
  *
- * At present, we just want JDK 19, but might constrain by vendor
+ * At present, we just want JDK 26, but might constrain by vendor
  * in the future.
  */
 object Toolchain {
-    val languageVersion = JavaLanguageVersion.of(21)
+    val languageVersion = JavaLanguageVersion.of(26)
 
     fun apply(spec: JavaToolchainSpec) {
         spec.languageVersion.set(languageVersion)

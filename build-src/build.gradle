@@ -3,6 +3,16 @@ plugins {
     alias libs.plugins.kotlin.jvm
 }
 
+kotlin {
+    jvmToolchain(26)
+}
+
+// Kotlin 2.3.0's max JVM target is 25; align Java to match.
+java {
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
+
 gradlePlugin {
     plugins {
         java {
