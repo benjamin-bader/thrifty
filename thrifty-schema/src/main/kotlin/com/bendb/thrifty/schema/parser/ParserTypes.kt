@@ -165,7 +165,8 @@ data class TypedefElement(
     override val uuid: UUID = ThriftyParserPlugins.createUUID(),
     override val annotations: AnnotationElement? = null
 ) : ParsedElement {
-  override val name: String get() = newName
+  override val name: String
+    get() = newName
 }
 
 /**
@@ -204,7 +205,8 @@ data class ConstElement(
     override val documentation: String = "",
     override val uuid: UUID = ThriftyParserPlugins.createUUID()
 ) : ParsedElement {
-  override val annotations: AnnotationElement? get() = null
+  override val annotations: AnnotationElement?
+    get() = null
 }
 
 /**
