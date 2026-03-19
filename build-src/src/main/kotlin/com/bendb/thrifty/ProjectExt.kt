@@ -44,6 +44,6 @@ inline fun <reified T : Task> TaskCollection<in Task>.withType(): TaskCollection
     return withType(T::class.java)
 }
 
-inline fun <reified T> ExtensionContainer.findByType(): T? = findByType(T::class.java)
+inline fun <reified T : Any> ExtensionContainer.findByType(): T? = findByType(T::class.java)
 
 inline fun <reified T : Plugin<Project>> PluginContainer.apply(): T = apply(T::class.java)

@@ -22,7 +22,6 @@
 
 plugins {
     id 'thrifty-kotlin-module'
-    id 'application'
     alias libs.plugins.shadow
 }
 
@@ -56,9 +55,6 @@ shadowJar {
     }
 }
 
-application {
-    mainClass = 'com.bendb.thrifty.compiler.ThriftyCompiler'
-}
 
 def kompileCoroutineTestThrift = tasks.register("kompileCoroutineTestThrift", JavaExec) { t ->
     t.inputs.file("$projectDir/CoroutineClientTest.thrift")
