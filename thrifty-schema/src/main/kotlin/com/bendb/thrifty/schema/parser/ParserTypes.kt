@@ -46,6 +46,15 @@ data class AnnotationElement(val location: Location, val values: Map<String, Str
   operator fun get(key: String): String? = values[key]
 }
 
+/** Common properties shared by all named, user-defined parser elements. */
+interface ParsedElement {
+  val uuid: UUID
+  val name: String
+  val location: Location
+  val documentation: String
+  val annotations: AnnotationElement?
+}
+
 /**
  * Represents a reference to a named type.
  *
@@ -149,13 +158,15 @@ data class IncludeElement(val location: Location, val isCpp: Boolean, val path: 
  * @constructor Creates a new instance of [TypedefElement].
  */
 data class TypedefElement(
-    val location: Location,
+    override val location: Location,
     val oldType: TypeElement,
     val newName: String,
-    val documentation: String = "",
-    val uuid: UUID = ThriftyParserPlugins.createUUID(),
-    val annotations: AnnotationElement? = null
-)
+    override val documentation: String = "",
+    override val uuid: UUID = ThriftyParserPlugins.createUUID(),
+    override val annotations: AnnotationElement? = null
+) : ParsedElement {
+  override val name: String get() = newName
+}
 
 /**
  * Represents the declaration of a language-specific namespace in a Thrift program.
@@ -186,13 +197,15 @@ data class NamespaceElement(
  * @constructor Creates a new instance of [ConstElement].
  */
 data class ConstElement(
-    val location: Location,
+    override val location: Location,
     val type: TypeElement,
-    val name: String,
+    override val name: String,
     val value: ConstValueElement,
-    val documentation: String = "",
-    val uuid: UUID = ThriftyParserPlugins.createUUID()
-)
+    override val documentation: String = "",
+    override val uuid: UUID = ThriftyParserPlugins.createUUID()
+) : ParsedElement {
+  override val annotations: AnnotationElement? get() = null
+}
 
 /**
  * Represents a single named member of a Thrift enumeration.
@@ -206,13 +219,13 @@ data class ConstElement(
  * @constructor Creates a new instance of [EnumMemberElement].
  */
 data class EnumMemberElement(
-    val location: Location,
-    val name: String,
+    override val location: Location,
+    override val name: String,
     val value: Int,
-    val documentation: String = "",
-    val annotations: AnnotationElement? = null,
-    val uuid: UUID = ThriftyParserPlugins.createUUID()
-)
+    override val documentation: String = "",
+    override val annotations: AnnotationElement? = null,
+    override val uuid: UUID = ThriftyParserPlugins.createUUID()
+) : ParsedElement
 
 /**
  * Represents a Thrift enumeration.
@@ -226,13 +239,13 @@ data class EnumMemberElement(
  * @constructor Creates a new instance of [EnumElement].
  */
 data class EnumElement(
-    val location: Location,
-    val name: String,
+    override val location: Location,
+    override val name: String,
     val members: List<EnumMemberElement>,
-    val documentation: String = "",
-    val annotations: AnnotationElement? = null,
-    val uuid: UUID = ThriftyParserPlugins.createUUID()
-)
+    override val documentation: String = "",
+    override val annotations: AnnotationElement? = null,
+    override val uuid: UUID = ThriftyParserPlugins.createUUID()
+) : ParsedElement
 
 /**
  * Represents a field in a Thrift struct, union, or exception.
@@ -249,16 +262,16 @@ data class EnumElement(
  * @constructor Creates a new instance of [FieldElement].
  */
 data class FieldElement(
-    val location: Location,
+    override val location: Location,
     val fieldId: Int,
     val type: TypeElement,
-    val name: String,
+    override val name: String,
     val requiredness: Requiredness = Requiredness.DEFAULT,
-    val documentation: String = "",
+    override val documentation: String = "",
     val constValue: ConstValueElement? = null,
-    val annotations: AnnotationElement? = null,
-    val uuid: UUID = ThriftyParserPlugins.createUUID()
-)
+    override val annotations: AnnotationElement? = null,
+    override val uuid: UUID = ThriftyParserPlugins.createUUID()
+) : ParsedElement
 
 /**
  * Represents the definition of a Thrift struct, union, or exception.
@@ -273,14 +286,14 @@ data class FieldElement(
  * @constructor Creates a new instance of [StructElement].
  */
 data class StructElement(
-    val location: Location,
-    val name: String,
+    override val location: Location,
+    override val name: String,
     val type: Type,
     val fields: List<FieldElement>,
-    val documentation: String = "",
-    val annotations: AnnotationElement? = null,
-    val uuid: UUID = ThriftyParserPlugins.createUUID()
-) {
+    override val documentation: String = "",
+    override val annotations: AnnotationElement? = null,
+    override val uuid: UUID = ThriftyParserPlugins.createUUID()
+) : ParsedElement {
   /** Defines the different types of structured element in the Thrift language. */
   enum class Type {
     /**
@@ -324,16 +337,16 @@ data class StructElement(
  * @constructor Creates a new instance of [FunctionElement].
  */
 data class FunctionElement(
-    val location: Location,
-    val name: String,
+    override val location: Location,
+    override val name: String,
     val returnType: TypeElement,
     val params: List<FieldElement> = emptyList(),
     val exceptions: List<FieldElement> = emptyList(),
     val oneWay: Boolean = false,
-    val documentation: String = "",
-    val annotations: AnnotationElement? = null,
-    val uuid: UUID = ThriftyParserPlugins.createUUID()
-)
+    override val documentation: String = "",
+    override val annotations: AnnotationElement? = null,
+    override val uuid: UUID = ThriftyParserPlugins.createUUID()
+) : ParsedElement
 
 /**
  * Represents the declaration of a Thrift service.
@@ -353,14 +366,14 @@ data class FunctionElement(
  * @constructor Creates a new instance of [ServiceElement].
  */
 data class ServiceElement(
-    val location: Location,
-    val name: String,
+    override val location: Location,
+    override val name: String,
     val functions: List<FunctionElement> = emptyList(),
     val extendsService: TypeElement? = null,
-    val documentation: String = "",
-    val annotations: AnnotationElement? = null,
-    val uuid: UUID = ThriftyParserPlugins.createUUID()
-)
+    override val documentation: String = "",
+    override val annotations: AnnotationElement? = null,
+    override val uuid: UUID = ThriftyParserPlugins.createUUID()
+) : ParsedElement
 
 /**
  * Represents a Thrift file, and everything defined within it.

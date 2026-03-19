@@ -21,15 +21,7 @@
  */
 package com.bendb.thrifty.schema
 
-import com.bendb.thrifty.schema.parser.AnnotationElement
-import com.bendb.thrifty.schema.parser.ConstElement
-import com.bendb.thrifty.schema.parser.EnumElement
-import com.bendb.thrifty.schema.parser.EnumMemberElement
-import com.bendb.thrifty.schema.parser.FieldElement
-import com.bendb.thrifty.schema.parser.FunctionElement
-import com.bendb.thrifty.schema.parser.ServiceElement
-import com.bendb.thrifty.schema.parser.StructElement
-import com.bendb.thrifty.schema.parser.TypedefElement
+import com.bendb.thrifty.schema.parser.ParsedElement
 import java.util.Locale
 import java.util.UUID
 
@@ -49,96 +41,14 @@ internal data class UserElementMixin(
     get() = hasThriftOrJavadocAnnotation("deprecated")
 
   constructor(
-      struct: StructElement,
-      namespaces: Map<NamespaceScope, String>
-  ) : this(
-      struct.uuid,
-      struct.name,
-      struct.location,
-      struct.documentation,
-      struct.annotations,
-      namespaces)
-
-  constructor(
-      field: FieldElement,
-      namespaces: Map<NamespaceScope, String>
-  ) : this(
-      field.uuid, field.name, field.location, field.documentation, field.annotations, namespaces)
-
-  constructor(
-      enumElement: EnumElement,
-      namespaces: Map<NamespaceScope, String>
-  ) : this(
-      enumElement.uuid,
-      enumElement.name,
-      enumElement.location,
-      enumElement.documentation,
-      enumElement.annotations,
-      namespaces)
-
-  constructor(
-      member: EnumMemberElement,
-      namespaces: Map<NamespaceScope, String>
-  ) : this(
-      member.uuid,
-      member.name,
-      member.location,
-      member.documentation,
-      member.annotations,
-      namespaces)
-
-  constructor(
-      element: TypedefElement,
-      namespaces: Map<NamespaceScope, String>
-  ) : this(
-      element.uuid,
-      element.newName,
-      element.location,
-      element.documentation,
-      element.annotations,
-      namespaces)
-
-  constructor(
-      element: ServiceElement,
+      element: ParsedElement,
       namespaces: Map<NamespaceScope, String>
   ) : this(
       element.uuid,
       element.name,
       element.location,
       element.documentation,
-      element.annotations,
-      namespaces)
-
-  constructor(
-      element: FunctionElement,
-      namespaces: Map<NamespaceScope, String>
-  ) : this(
-      element.uuid,
-      element.name,
-      element.location,
-      element.documentation,
-      element.annotations,
-      namespaces)
-
-  constructor(
-      element: ConstElement,
-      namespaces: Map<NamespaceScope, String>
-  ) : this(
-      element.uuid, element.name, element.location, element.documentation, emptyMap(), namespaces)
-
-  constructor(
-      uuid: UUID,
-      name: String,
-      location: Location,
-      documentation: String,
-      annotationElement: AnnotationElement?,
-      namespaces: Map<NamespaceScope, String>
-  ) : this(
-      uuid,
-      name,
-      location,
-      documentation,
-      annotationElement?.values?.toMap() ?: emptyMap(),
+      element.annotations?.values?.toMap() ?: emptyMap(),
       namespaces)
 
   private constructor(
