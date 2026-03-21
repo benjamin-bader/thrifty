@@ -63,6 +63,7 @@ def kompileCoroutineTestThrift = tasks.register("kompileCoroutineTestThrift", Ja
     t.outputs.cacheIf("This task is always cacheable based on its inputs") { true }
 
     t.classpath shadowJar.archiveFile
+    t.mainClass.set('com.bendb.thrifty.compiler.ThriftyCompiler')
 
     args = [
             "--out=$projectDir/build/generated-src/thrifty-kotlin-coro/kotlin",

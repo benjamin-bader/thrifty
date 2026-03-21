@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        jvm-version: [21]
+        jvm-version: [26]
         os: [ubuntu-latest, macos-latest]
     env:
       JDK_VERSION: ${{ matrix.jvm-version }}
@@ -34,7 +34,7 @@ jobs:
             cache-gradle-${{ matrix.os }}-${{ matrix.jvm-version }}
 
       - name: Ensure all code files have license headers
-        if: matrix.os == 'ubuntu-latest' && matrix.jvm-version == '21'
+        if: matrix.os == 'ubuntu-latest' && matrix.jvm-version == '26'
         shell: bash
         run: |
           ./script/ensure_license_headers.sh
@@ -69,5 +69,5 @@ jobs:
 #        run: ./gradlew iosTest
 
       - name: Upload coverage stats
-        if: success() && matrix.os == 'ubuntu-latest' && matrix.jvm-version == '17'
+        if: success() && matrix.os == 'ubuntu-latest' && matrix.jvm-version == '26'
         uses: codecov/codecov-action@v3

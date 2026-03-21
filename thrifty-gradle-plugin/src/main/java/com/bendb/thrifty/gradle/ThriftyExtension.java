@@ -93,9 +93,10 @@ public abstract class ThriftyExtension {
     }
 
     Provider<List<SourceDirectorySet>> getSourceDirectorySets() {
-        return getSources().map(ss -> ss.stream()
-                .map(DefaultThriftSourceDirectory::getSourceDirectorySet)
-                .collect(Collectors.toList()));
+        return getSources()
+                .map(ss -> ss.stream()
+                        .map(DefaultThriftSourceDirectory::getSourceDirectorySet)
+                        .collect(Collectors.toList()));
     }
 
     Provider<ThriftOptions> getThriftOptions() {

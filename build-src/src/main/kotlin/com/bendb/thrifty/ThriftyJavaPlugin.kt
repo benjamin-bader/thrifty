@@ -109,7 +109,7 @@ class ThriftyJavaPlugin : Plugin<Project> {
         project.plugins.apply(Plugins.SPOTLESS)
         project.extensions.configure(SpotlessExtension::class.java) { ext ->
             ext.java {
-                it.palantirJavaFormat().formatJavadoc(true)
+                it.palantirJavaFormat("2.89.0").formatJavadoc(true)
                 it.removeUnusedImports()
                 it.targetExclude(generatedCode)
             }

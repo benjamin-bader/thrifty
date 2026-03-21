@@ -116,7 +116,6 @@ open class ShouldCompileMatcher : Matcher<List<FileSpec>> {
           noReflect = true
 
           // we have a Need for Speed
-          useK2 = true
           noOptimize = true
           useFastJarFileSystem = true
         }
@@ -155,7 +154,7 @@ private class LogEverythingMessageCollector : MessageCollector {
   }
 
   override fun hasErrors(): Boolean {
-    return messageArrayList.isNotEmpty()
+    return messageArrayList.any { it.severity.isError }
   }
 
   override fun report(

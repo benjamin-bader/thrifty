@@ -27,7 +27,6 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 /**
@@ -38,7 +37,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 class ThriftyKotlinPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         applyBasePlugins(project)
-        configureToolchain(project)
         addKotlinBom(project)
         configureKotlinTasks(project)
         configureSpotless(project)
@@ -50,11 +48,6 @@ class ThriftyKotlinPlugin : Plugin<Project> {
         if (project.shouldSignAndDocumentBuild) {
             project.plugins.apply(Plugins.DOKKA)
         }
-    }
-
-    private fun configureToolchain(project: Project) {
-        val ext = project.extensions.findByType<KotlinProjectExtension>()!!
-        ext.jvmToolchain(Toolchain::apply)
     }
 
     private fun addKotlinBom(project: Project) {
